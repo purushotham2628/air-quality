@@ -1,14 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Air Quality Monitor</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bengaluru Air Quality & Weather Monitor</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Air Quality in Bangalore</h1>
-    <div id="aqi">Loading...</div>
+  <div class="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="location">
+          <i class="fas fa-map-marker-alt"></i>
+          <span>Bengaluru, Karnataka</span>
+        </div>
+        <div class="last-updated">
+          <i class="fas fa-clock"></i>
+          <span id="lastUpdated">Loading...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+      <!-- Current Conditions -->
+      <section class="current-conditions">
+        <div class="weather-card">
+          <div class="weather-header">
+            <h2>Current Weather</h2>
+            <button id="refreshBtn" class="refresh-btn">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+          <div class="weather-content">
+            <div class="temperature">
+              <span id="temperature">--°</span>
+              <div class="weather-details">
+                <div id="weatherDescription">Loading...</div>
+                <div class="feels-like">Feels like <span id="feelsLike">--°</span></div>
+              </div>
+            </div>
+            <div class="weather-icon">
+              <i id="weatherIcon" class="fas fa-sun"></i>
+            </div>
+          </div>
+          <div class="weather-stats">
+            <div class="stat">
+              <i class="fas fa-tint"></i>
+              <span>Humidity</span>
+              <span id="humidity">--%</span>
+            </div>
+            <div class="stat">
+              <i class="fas fa-wind"></i>
+              <span>Wind</span>
+              <span id="windSpeed">-- km/h</span>
+            </div>
+            <div class="stat">
+              <i class="fas fa-eye"></i>
+              <span>Visibility</span>
+              <span id="visibility">-- km</span>
+            </div>
+            <div class="stat">
+              <i class="fas fa-thermometer-half"></i>
+              <span>Pressure</span>
+              <span id="pressure">-- hPa</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="aqi-card">
+          <div class="aqi-header">
+            <h2>Air Quality Index</h2>
+            <div class="aqi-badge" id="aqiBadge">
+              <span id="aqiValue">--</span>
+              <span id="aqiLevel">Loading</span>
+            </div>
+          </div>
+          <div class="aqi-details">
+            <div class="pollutant">
+              <span class="label">PM2.5</span>
+              <span class="value" id="pm25">-- μg/m³</span>
+              <div class="bar">
+                <div class="fill" id="pm25Bar"></div>
+              </div>
+            </div>
+            <div class="pollutant">
+              <span class="label">PM10</span>
+              <span class="value" id="pm10">-- μg/m³</span>
+              <div class="bar">
+                <div class="fill" id="pm10Bar"></div>
+              </div>
+            </div>
+            <div class="pollutant">
+              <span class="label">NO₂</span>
+              <span class="value" id="no2">-- μg/m³</span>
+              <div class="bar">
+                <div class="fill" id="no2Bar"></div>
+              </div>
+            </div>
+            <div class="pollutant">
+              <span class="label">O₃</span>
+              <span class="value" id="o3">-- μg/m³</span>
+              <div class="bar">
+                <div class="fill" id="o3Bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts Section -->
+      <section class="charts-section">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Air Quality Trends (24 Hours)</h3>
+            <div class="chart-controls">
+              <button class="chart-btn active" data-period="24h">24H</button>
+              <button class="chart-btn" data-period="7d">7D</button>
+              <button class="chart-btn" data-period="30d">30D</button>
+            </div>
+          </div>
+          <canvas id="aqiChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Weather Trends (24 Hours)</h3>
+            <div class="chart-controls">
+              <button class="chart-btn active" data-period="24h">24H</button>
+              <button class="chart-btn" data-period="7d">7D</button>
+            </div>
+          </div>
+          <canvas id="weatherChart"></canvas>
+        </div>
+      </section>
+
+      <!-- Health Recommendations -->
+      <section class="recommendations">
+        <div class="recommendation-card">
+          <h3><i class="fas fa-heartbeat"></i> Health Recommendations</h3>
+          <div id="healthAdvice" class="advice-content">
+            <p>Loading health recommendations...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Loading data...</p>
+    </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
