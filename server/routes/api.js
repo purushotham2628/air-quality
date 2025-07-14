@@ -1,5 +1,4 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const router = express.Router();
 
 const API_KEY = process.env.API_KEY;
@@ -11,18 +10,18 @@ router.get('/air-quality', async (req, res) => {
   try {
     const url = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${LAT}&lon=${LON}&appid=${API_KEY}`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`API responded with status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     const info = data.list[0].components;
     const aqi = data.list[0].main.aqi;
 
-    res.json({ 
-      aqi, 
-      pm2_5: info.pm2_5 || 0, 
+    res.json({
+      aqi,
+      pm2_5: info.pm2_5 || 0,
       pm10: info.pm10 || 0,
       no2: info.no2 || 0,
       o3: info.o3 || 0,
@@ -41,11 +40,11 @@ router.get('/weather', async (req, res) => {
   try {
     const url = `http://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&appid=${API_KEY}&units=metric`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`API responded with status: ${response.status}`);
     }
-    
+
     const data = await response.json();
 
     res.json({
@@ -72,10 +71,8 @@ router.get('/weather', async (req, res) => {
 router.get('/historical/:type', async (req, res) => {
   const { type } = req.params;
   const { period = '24h' } = req.query;
-  
+
   try {
-    // In a real application, you would fetch this from a database
-    // For now, we'll generate mock historical data
     const mockData = generateMockHistoricalData(type, period);
     res.json(mockData);
   } catch (err) {
@@ -88,7 +85,7 @@ function generateMockHistoricalData(type, period) {
   const now = new Date();
   const data = [];
   let hours;
-  
+
   switch (period) {
     case '24h':
       hours = 24;
@@ -102,10 +99,10 @@ function generateMockHistoricalData(type, period) {
     default:
       hours = 24;
   }
-  
+
   for (let i = hours; i >= 0; i--) {
     const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
-    
+
     if (type === 'aqi') {
       data.push({
         timestamp: timestamp.toISOString(),
@@ -122,7 +119,7 @@ function generateMockHistoricalData(type, period) {
       });
     }
   }
-  
+
   return data;
 }
 
