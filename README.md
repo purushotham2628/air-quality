@@ -88,8 +88,8 @@ bengaluru-air-quality-monitor/
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/purushotham2628/bengaluru-air-quality-monitor.git
-cd bengaluru-air-quality-monitor
+git clone https://github.com/purushotham2628/air-quality.git
+cd air-quality
 
 # 2. Install dependencies
 npm install
