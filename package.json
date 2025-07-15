@@ -1,19 +1,31 @@
 {
-  "name": "air-quality",
+  "name": "bengaluru-air-quality-monitor",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Real-time air quality and weather monitoring dashboard for Bengaluru",
+  "main": "server/server.js",
   "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "air-quality",
+    "weather",
+    "bengaluru",
+    "monitoring",
+    "dashboard",
+    "environment"
+  ],
+  "author": "Air Quality Monitor Team",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "chart.js": "^4.5.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.0",
     "express": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
