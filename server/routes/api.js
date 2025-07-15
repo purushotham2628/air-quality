@@ -19,15 +19,19 @@ router.get('/air-quality', async (req, res) => {
       });
     }
 
-    const url = `http://api.openweathermap.org/data/2.5/air_pollution?lat=${LAT}&lon=${LON}&appid=${API_KEY}`;
+    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${LAT}&lon=${LON}&appid=${API_KEY}`;
     
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`OpenWeatherMap API responded with status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Air Quality API Error:', response.status, errorText);
+      throw new Error(`OpenWeatherMap API responded with status: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    
+    console.log('Air Quality API Response:', JSON.stringify(data, null, 2));
     
     if (!data.list || data.list.length === 0) {
       throw new Error('No air quality data available');
@@ -65,15 +69,19 @@ router.get('/weather', async (req, res) => {
       });
     }
 
-    const url = `http://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&appid=${API_KEY}&units=metric`;
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&appid=${API_KEY}&units=metric`;
     
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`OpenWeatherMap API responded with status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Weather API Error:', response.status, errorText);
+      throw new Error(`OpenWeatherMap API responded with status: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    
+    console.log('Weather API Response:', JSON.stringify(data, null, 2));
 
     res.json({
       temperature: Math.round(data.main.temp * 10) / 10,
@@ -82,9 +90,9 @@ router.get('/weather', async (req, res) => {
       pressure: data.main.pressure,
       description: data.weather[0].description,
       icon: data.weather[0].icon,
-      wind_speed: Math.round(data.wind.speed * 10) / 10,
-      wind_direction: data.wind.deg || 0,
-      visibility: data.visibility || 10000,
+      wind_speed: Math.round((data.wind?.speed || 0) * 10) / 10,
+      wind_direction: data.wind?.deg || 0,
+      visibility: Math.round((data.visibility || 10000) / 1000),
       clouds: data.clouds.all,
       sunrise: data.sys.sunrise,
       sunset: data.sys.sunset,

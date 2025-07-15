@@ -40,11 +40,14 @@ class AirQualityApp {
     
     try {
       this.showRefreshAnimation(true);
+      console.log('Loading current data...');
       
       const [airQualityData, weatherData] = await Promise.all([
         this.fetchAirQuality(),
         this.fetchWeather()
       ]);
+
+      console.log('Data loaded successfully:', { airQualityData, weatherData });
 
       this.updateAirQualityDisplay(airQualityData);
       this.updateWeatherDisplay(weatherData);
@@ -74,18 +77,24 @@ class AirQualityApp {
     const response = await fetch('/api/air-quality');
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('Air quality fetch error:', errorData);
       throw new Error(errorData.error || 'Failed to fetch air quality data');
     }
-    return response.json();
+    const data = await response.json();
+    console.log('Air quality data received:', data);
+    return data;
   }
 
   async fetchWeather() {
     const response = await fetch('/api/weather');
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('Weather fetch error:', errorData);
       throw new Error(errorData.error || 'Failed to fetch weather data');
     }
-    return response.json();
+    const data = await response.json();
+    console.log('Weather data received:', data);
+    return data;
   }
 
   updateAirQualityDisplay(data) {
@@ -147,6 +156,8 @@ class AirQualityApp {
   }
 
   updateWeatherDisplay(data) {
+    console.log('Updating weather display with:', data);
+    
     const { 
       temperature, 
       feels_like, 
@@ -158,6 +169,12 @@ class AirQualityApp {
       icon 
     } = data;
 
+    // Validate data
+    if (temperature === undefined || temperature === null) {
+      console.error('Temperature data is missing');
+      return;
+    }
+
     // Animate temperature
     this.animateTemperature(temperature);
     
@@ -165,15 +182,20 @@ class AirQualityApp {
       'feelsLike': `${Math.round(feels_like)}°C`,
       'weatherDescription': this.capitalizeWords(description),
       'humidity': `${humidity}%`,
-      'windSpeed': `${Math.round(wind_speed * 3.6)} km/h`,
-      'visibility': `${Math.round(visibility / 1000)} km`,
+      'windSpeed': `${Math.round(wind_speed * 3.6)} km/h`, // Convert m/s to km/h
+      'visibility': `${visibility} km`, // Already converted in backend
       'pressure': `${pressure} hPa`
     };
+
+    console.log('Setting element values:', elements);
 
     Object.entries(elements).forEach(([id, value]) => {
       const element = document.getElementById(id);
       if (element) {
         element.textContent = value;
+        console.log(`Set ${id} to ${value}`);
+      } else {
+        console.error(`Element with id '${id}' not found`);
       }
     });
     
@@ -184,13 +206,21 @@ class AirQualityApp {
       setTimeout(() => {
         iconElement.className = this.getWeatherIcon(icon);
         iconElement.style.transform = 'scale(1)';
+        console.log(`Set weather icon to ${icon} -> ${this.getWeatherIcon(icon)}`);
       }, 200);
+    } else {
+      console.error('Weather icon element not found');
     }
   }
 
   animateTemperature(targetTemp) {
     const tempElement = document.getElementById('temperature');
-    if (!tempElement) return;
+    if (!tempElement) {
+      console.error('Temperature element not found');
+      return;
+    }
+
+    console.log(`Animating temperature to ${targetTemp}°C`);
 
     const currentTemp = parseFloat(tempElement.textContent) || 0;
     const startTime = performance.now();
