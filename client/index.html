@@ -20,7 +20,19 @@
         <div class="last-updated">
           <i class="fas fa-clock"></i>
           <span id="lastUpdated">Loading...</span>
-        </div>
+        <span id="currentLocation">Bengaluru, Karnataka</span>
+      </div>
+      <div class="location-selector">
+        <select id="locationSelect" class="location-dropdown">
+          <option value="central">Central Bengaluru</option>
+          <option value="whitefield">Whitefield</option>
+          <option value="koramangala">Koramangala</option>
+          <option value="indiranagar">Indiranagar</option>
+          <option value="electronic-city">Electronic City</option>
+          <option value="hebbal">Hebbal</option>
+          <option value="jayanagar">Jayanagar</option>
+          <option value="marathahalli">Marathahalli</option>
+        </select>
       </div>
     </header>
 
@@ -28,12 +40,46 @@
     <main class="dashboard">
       <!-- Current Conditions -->
       <section class="current-conditions">
+        <!-- Weather Summary Card -->
+        <div class="weather-summary-card">
+          <div class="summary-header">
+            <h2><i class="fas fa-cloud-sun"></i> Today's Overview</h2>
+            <div class="weather-trend" id="weatherTrend">
+              <i class="fas fa-arrow-up trend-icon"></i>
+              <span>Improving</span>
+            </div>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="summary-label">Air Quality</div>
+              <div class="summary-value" id="summaryAqi">Good</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Temperature</div>
+              <div class="summary-value" id="summaryTemp">25°C</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">Humidity</div>
+              <div class="summary-value" id="summaryHumidity">65%</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-label">UV Index</div>
+              <div class="summary-value" id="summaryUV">Moderate</div>
+            </div>
+          </div>
+        </div>
+
         <div class="weather-card">
           <div class="weather-header">
             <h2>Current Weather</h2>
-            <button id="refreshBtn" class="refresh-btn">
-              <i class="fas fa-sync-alt"></i>
-            </button>
+            <div class="weather-actions">
+              <button id="shareBtn" class="action-btn" title="Share Weather">
+                <i class="fas fa-share-alt"></i>
+              </button>
+              <button id="refreshBtn" class="refresh-btn">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
           </div>
           <div class="weather-content">
             <div class="temperature">
@@ -68,15 +114,37 @@
               <span>Pressure</span>
               <span id="pressure">-- hPa</span>
             </div>
+            <div class="stat">
+              <i class="fas fa-sun"></i>
+              <span>UV Index</span>
+              <span id="uvIndex">--</span>
+            </div>
+            <div class="stat">
+              <i class="fas fa-thermometer-quarter"></i>
+              <span>Dew Point</span>
+              <span id="dewPoint">--°C</span>
+            </div>
           </div>
         </div>
 
         <div class="aqi-card">
           <div class="aqi-header">
             <h2>Air Quality Index</h2>
-            <div class="aqi-badge" id="aqiBadge">
-              <span id="aqiValue">--</span>
-              <span id="aqiLevel">Loading</span>
+            <div class="aqi-info">
+              <div class="aqi-badge" id="aqiBadge">
+                <span id="aqiValue">--</span>
+                <span id="aqiLevel">Loading</span>
+              </div>
+              <div class="aqi-comparison">
+                <div class="comparison-item">
+                  <span class="comparison-label">Yesterday</span>
+                  <span class="comparison-value" id="aqiYesterday">--</span>
+                </div>
+                <div class="comparison-item">
+                  <span class="comparison-label">Last Week</span>
+                  <span class="comparison-value" id="aqiLastWeek">--</span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="aqi-details">
@@ -112,6 +180,23 @@
         </div>
       </section>
 
+      <!-- Location Comparison -->
+      <section class="location-comparison">
+        <div class="comparison-card">
+          <div class="comparison-header">
+            <h3><i class="fas fa-map-marked-alt"></i> Bengaluru Areas Comparison</h3>
+            <div class="comparison-controls">
+              <button class="comparison-btn active" data-metric="aqi">AQI</button>
+              <button class="comparison-btn" data-metric="temp">Temperature</button>
+              <button class="comparison-btn" data-metric="humidity">Humidity</button>
+            </div>
+          </div>
+          <div class="comparison-grid" id="comparisonGrid">
+            <!-- Dynamic content will be inserted here -->
+          </div>
+        </div>
+      </section>
+
       <!-- Charts Section -->
       <section class="charts-section">
         <div class="chart-container">
@@ -136,6 +221,39 @@
           </div>
           <canvas id="weatherChart"></canvas>
         </div>
+
+        <!-- New Hourly Forecast Chart -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>24-Hour Forecast</h3>
+            <div class="forecast-toggle">
+              <button class="chart-btn active" data-forecast="temp">Temperature</button>
+              <button class="chart-btn" data-forecast="aqi">Air Quality</button>
+            </div>
+          </div>
+          <canvas id="forecastChart"></canvas>
+        </div>
+
+        <!-- Air Quality Breakdown -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>Pollutant Breakdown</h3>
+            <div class="breakdown-info">
+              <i class="fas fa-info-circle" title="WHO Air Quality Guidelines"></i>
+            </div>
+          </div>
+          <canvas id="pollutantChart"></canvas>
+        </div>
+      </section>
+
+      <!-- Weekly Forecast -->
+      <section class="weekly-forecast">
+        <div class="forecast-card">
+          <h3><i class="fas fa-calendar-week"></i> 7-Day Forecast</h3>
+          <div class="forecast-grid" id="weeklyForecast">
+            <!-- Dynamic content will be inserted here -->
+          </div>
+        </div>
       </section>
 
       <!-- Health Recommendations -->
@@ -147,6 +265,25 @@
           </div>
         </div>
       </section>
+
+      <!-- Air Quality Alerts -->
+      <section class="alerts-section" id="alertsSection" style="display: none;">
+        <div class="alert-card">
+          <div class="alert-header">
+            <h3><i class="fas fa-exclamation-triangle"></i> Air Quality Alerts</h3>
+            <button id="dismissAlerts" class="dismiss-btn">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="alert-content" id="alertContent">
+            <!-- Dynamic alerts will be inserted here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Statistics -->
+      <div class="stats-footer" id="statsFooter">
+      </div>
     </main>
 
     <!-- Loading Overlay -->
