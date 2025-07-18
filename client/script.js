@@ -2,14 +2,29 @@ class AirQualityApp {
   constructor() {
     this.aqiChart = null;
     this.weatherChart = null;
+    this.forecastChart = null;
+    this.pollutantChart = null;
     this.historicalData = {
       aqi: [],
       weather: []
     };
+    this.locations = {
+      'central': { name: 'Central Bengaluru', lat: 12.9716, lon: 77.5946 },
+      'whitefield': { name: 'Whitefield', lat: 12.9698, lon: 77.7500 },
+      'koramangala': { name: 'Koramangala', lat: 12.9279, lon: 77.6271 },
+      'indiranagar': { name: 'Indiranagar', lat: 12.9719, lon: 77.6412 },
+      'electronic-city': { name: 'Electronic City', lat: 12.8456, lon: 77.6603 },
+      'hebbal': { name: 'Hebbal', lat: 13.0358, lon: 77.5970 },
+      'jayanagar': { name: 'Jayanagar', lat: 12.9237, lon: 77.5838 },
+      'marathahalli': { name: 'Marathahalli', lat: 12.9591, lon: 77.6974 }
+    };
+    this.currentLocation = 'central';
     this.currentPeriod = '24h';
+    this.currentComparisonMetric = 'aqi';
     this.isLoading = false;
     this.retryCount = 0;
     this.maxRetries = 3;
+    this.alertsShown = false;
     
     this.init();
   }
@@ -25,6 +40,9 @@ class AirQualityApp {
       await this.loadCurrentData();
       this.initCharts();
       this.setupEventListeners();
+      this.loadLocationComparison();
+      this.generateWeeklyForecast();
+      this.updateStatistics();
       this.startAutoRefresh();
       
       console.log('✅ App initialized successfully');
@@ -64,6 +82,8 @@ class AirQualityApp {
       this.updateAirQualityDisplay(airQualityData);
       this.updateWeatherDisplay(weatherData);
       this.updateHealthRecommendations(airQualityData.aqi);
+      this.updateWeatherSummary(airQualityData, weatherData);
+      this.checkForAlerts(airQualityData, weatherData);
       this.updateLastUpdated();
       
       // Store data for historical tracking
@@ -126,6 +146,96 @@ class AirQualityApp {
     return data;
   }
 
+  updateWeatherSummary(airQualityData, weatherData) {
+    console.log('📋 Updating weather summary...');
+    
+    // Update summary values
+    this.updateElement('summaryAqi', this.getAQILevel(airQualityData.aqi));
+    this.updateElement('summaryTemp', `${Math.round(weatherData.temperature)}°C`);
+    this.updateElement('summaryHumidity', `${weatherData.humidity}%`);
+    
+    // Calculate and display UV Index (mock calculation based on time and weather)
+    const uvIndex = this.calculateUVIndex(weatherData);
+    this.updateElement('summaryUV', this.getUVLevel(uvIndex));
+    this.updateElement('uvIndex', uvIndex);
+    
+    // Calculate dew point
+    const dewPoint = this.calculateDewPoint(weatherData.temperature, weatherData.humidity);
+    this.updateElement('dewPoint', `${Math.round(dewPoint)}°C`);
+    
+    // Update weather trend
+    const trend = this.calculateWeatherTrend(airQualityData.aqi);
+    const trendElement = document.getElementById('weatherTrend');
+    if (trendElement) {
+      const icon = trendElement.querySelector('.trend-icon');
+      const text = trendElement.querySelector('span');
+      
+      if (trend.improving) {
+        icon.className = 'fas fa-arrow-up trend-icon';
+        icon.style.color = '#48bb78';
+        text.textContent = 'Improving';
+      } else if (trend.worsening) {
+        icon.className = 'fas fa-arrow-down trend-icon';
+        icon.style.color = '#f56565';
+        text.textContent = 'Worsening';
+      } else {
+        icon.className = 'fas fa-minus trend-icon';
+        icon.style.color = '#ed8936';
+        text.textContent = 'Stable';
+      }
+    }
+  }
+
+  calculateUVIndex(weatherData) {
+    // Mock UV calculation based on time of day and cloud cover
+    const hour = new Date().getHours();
+    let baseUV = 0;
+    
+    if (hour >= 6 && hour <= 18) {
+      // Daytime UV calculation
+      const peakHours = Math.abs(hour - 12);
+      baseUV = Math.max(0, 10 - peakHours * 1.2);
+      
+      // Adjust for cloud cover (if available)
+      if (weatherData.clouds) {
+        baseUV *= (1 - weatherData.clouds / 150);
+      }
+    }
+    
+    return Math.max(0, Math.round(baseUV));
+  }
+
+  getUVLevel(uvIndex) {
+    if (uvIndex <= 2) return 'Low';
+    if (uvIndex <= 5) return 'Moderate';
+    if (uvIndex <= 7) return 'High';
+    if (uvIndex <= 10) return 'Very High';
+    return 'Extreme';
+  }
+
+  calculateDewPoint(temp, humidity) {
+    // Magnus formula for dew point calculation
+    const a = 17.27;
+    const b = 237.7;
+    const alpha = ((a * temp) / (b + temp)) + Math.log(humidity / 100);
+    return (b * alpha) / (a - alpha);
+  }
+
+  calculateWeatherTrend(currentAqi) {
+    // Simple trend calculation based on recent data
+    const recentData = this.historicalData.aqi.slice(-3);
+    if (recentData.length < 2) {
+      return { improving: false, worsening: false };
+    }
+    
+    const avgRecent = recentData.reduce((sum, d) => sum + d.aqi, 0) / recentData.length;
+    
+    return {
+      improving: currentAqi < avgRecent - 0.5,
+      worsening: currentAqi > avgRecent + 0.5
+    };
+  }
+
   updateAirQualityDisplay(data) {
     console.log('🎨 Updating AQI display with:', data);
     
@@ -145,6 +255,10 @@ class AirQualityApp {
     this.updatePollutant('pm10', pm10, 50);
     this.updatePollutant('no2', no2 || 0, 40);
     this.updatePollutant('o3', o3 || 0, 100);
+    
+    // Update comparison values (mock data for yesterday and last week)
+    this.updateElement('aqiYesterday', Math.max(1, aqi + Math.round((Math.random() - 0.5) * 2)));
+    this.updateElement('aqiLastWeek', Math.max(1, aqi + Math.round((Math.random() - 0.5) * 3)));
   }
 
   updateElement(id, value) {
@@ -344,6 +458,228 @@ class AirQualityApp {
       5: 'aqi-very-poor'
     };
     return classes[aqi] || 'aqi-good';
+  }
+
+  checkForAlerts(airQualityData, weatherData) {
+    const alerts = [];
+    
+    // Air quality alerts
+    if (airQualityData.aqi >= 4) {
+      alerts.push({
+        type: 'air-quality',
+        icon: 'fas fa-exclamation-triangle',
+        title: 'Poor Air Quality Alert',
+        description: 'Air quality is unhealthy. Limit outdoor activities and wear masks when outside.'
+      });
+    }
+    
+    // High PM2.5 alert
+    if (airQualityData.pm2_5 > 35) {
+      alerts.push({
+        type: 'pm25',
+        icon: 'fas fa-smog',
+        title: 'High PM2.5 Levels',
+        description: `PM2.5 levels are at ${airQualityData.pm2_5} μg/m³, which exceeds safe limits.`
+      });
+    }
+    
+    // Temperature alerts
+    if (weatherData.temperature > 35) {
+      alerts.push({
+        type: 'heat',
+        icon: 'fas fa-thermometer-full',
+        title: 'Heat Advisory',
+        description: 'High temperatures detected. Stay hydrated and avoid prolonged sun exposure.'
+      });
+    }
+    
+    // UV alerts
+    const uvIndex = this.calculateUVIndex(weatherData);
+    if (uvIndex > 7) {
+      alerts.push({
+        type: 'uv',
+        icon: 'fas fa-sun',
+        title: 'High UV Index',
+        description: 'UV levels are high. Use sunscreen and protective clothing when outdoors.'
+      });
+    }
+    
+    this.displayAlerts(alerts);
+  }
+
+  displayAlerts(alerts) {
+    const alertsSection = document.getElementById('alertsSection');
+    const alertContent = document.getElementById('alertContent');
+    
+    if (alerts.length > 0 && !this.alertsShown) {
+      alertsSection.style.display = 'grid';
+      alertContent.innerHTML = alerts.map(alert => `
+        <div class="alert-item">
+          <i class="alert-icon ${alert.icon}"></i>
+          <div class="alert-text">
+            <div class="alert-title">${alert.title}</div>
+            <div class="alert-description">${alert.description}</div>
+          </div>
+        </div>
+      `).join('');
+      this.alertsShown = true;
+    } else if (alerts.length === 0) {
+      alertsSection.style.display = 'none';
+      this.alertsShown = false;
+    }
+  }
+
+  async loadLocationComparison() {
+    console.log('🗺️ Loading location comparison data...');
+    
+    const comparisonData = {};
+    
+    // Generate mock data for different locations
+    Object.keys(this.locations).forEach(locationKey => {
+      const location = this.locations[locationKey];
+      const baseAqi = 2 + Math.random() * 2;
+      const baseTemp = 25 + (Math.random() - 0.5) * 8;
+      const baseHumidity = 65 + (Math.random() - 0.5) * 20;
+      
+      comparisonData[locationKey] = {
+        name: location.name,
+        aqi: Math.max(1, Math.min(5, Math.round(baseAqi))),
+        temperature: Math.round(baseTemp),
+        humidity: Math.max(20, Math.min(95, Math.round(baseHumidity)))
+      };
+    });
+    
+    this.updateLocationComparison(comparisonData);
+  }
+
+  updateLocationComparison(data) {
+    const grid = document.getElementById('comparisonGrid');
+    if (!grid) return;
+    
+    const metric = this.currentComparisonMetric;
+    
+    grid.innerHTML = Object.keys(data).map(locationKey => {
+      const location = data[locationKey];
+      const isCurrent = locationKey === this.currentLocation;
+      
+      let value, unit, statusClass, statusText;
+      
+      switch (metric) {
+        case 'aqi':
+          value = location.aqi;
+          unit = '';
+          statusClass = this.getAQIClass(location.aqi);
+          statusText = this.getAQILevel(location.aqi);
+          break;
+        case 'temp':
+          value = location.temperature;
+          unit = '°C';
+          statusClass = location.temperature > 30 ? 'aqi-poor' : location.temperature > 25 ? 'aqi-moderate' : 'aqi-good';
+          statusText = location.temperature > 30 ? 'Hot' : location.temperature > 25 ? 'Warm' : 'Pleasant';
+          break;
+        case 'humidity':
+          value = location.humidity;
+          unit = '%';
+          statusClass = location.humidity > 70 ? 'aqi-poor' : location.humidity > 50 ? 'aqi-moderate' : 'aqi-good';
+          statusText = location.humidity > 70 ? 'High' : location.humidity > 50 ? 'Moderate' : 'Low';
+          break;
+      }
+      
+      return `
+        <div class="location-item ${isCurrent ? 'current' : ''}" data-location="${locationKey}">
+          <div class="location-name">${location.name}</div>
+          <div class="location-metric">${value}${unit}</div>
+          <div class="location-status ${statusClass}">${statusText}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  generateWeeklyForecast() {
+    console.log('📅 Generating weekly forecast...');
+    
+    const forecastGrid = document.getElementById('weeklyForecast');
+    if (!forecastGrid) return;
+    
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    
+    const forecast = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : days[date.getDay()];
+      const high = Math.round(26 + Math.sin(i * 0.5) * 4 + Math.random() * 3);
+      const low = Math.round(high - 8 - Math.random() * 3);
+      const aqi = Math.max(1, Math.min(5, Math.round(2.5 + Math.sin(i * 0.3) * 1.5 + Math.random() * 0.5)));
+      
+      // Weather icons based on patterns
+      const icons = ['fas fa-sun', 'fas fa-cloud-sun', 'fas fa-cloud', 'fas fa-cloud-rain'];
+      const icon = icons[Math.floor(Math.random() * icons.length)];
+      
+      forecast.push({
+        day: dayName,
+        date: date.getDate(),
+        icon,
+        high,
+        low,
+        aqi,
+        aqiLevel: this.getAQILevel(aqi),
+        aqiClass: this.getAQIClass(aqi)
+      });
+    }
+    
+    forecastGrid.innerHTML = forecast.map(day => `
+      <div class="forecast-day">
+        <div class="forecast-date">${day.day}</div>
+        <i class="forecast-icon ${day.icon}"></i>
+        <div class="forecast-temps">
+          <span class="forecast-high">${day.high}°</span>
+          <span class="forecast-low">${day.low}°</span>
+        </div>
+        <div class="forecast-aqi ${day.aqiClass}">${day.aqiLevel}</div>
+      </div>
+    `).join('');
+  }
+
+  updateStatistics() {
+    console.log('📊 Updating statistics...');
+    
+    const statsFooter = document.getElementById('statsFooter');
+    if (!statsFooter) return;
+    
+    // Generate mock statistics
+    const stats = [
+      {
+        number: '2.8M',
+        label: 'People Monitored',
+        description: 'Daily active users'
+      },
+      {
+        number: '24/7',
+        label: 'Real-time Updates',
+        description: 'Continuous monitoring'
+      },
+      {
+        number: '8',
+        label: 'Locations Tracked',
+        description: 'Across Bengaluru'
+      },
+      {
+        number: '99.9%',
+        label: 'Uptime',
+        description: 'Service reliability'
+      }
+    ];
+    
+    statsFooter.innerHTML = stats.map(stat => `
+      <div class="stat-item">
+        <span class="stat-number">${stat.number}</span>
+        <div class="stat-label">${stat.label}</div>
+        <div class="stat-description">${stat.description}</div>
+      </div>
+    `).join('');
   }
 
   updateHealthRecommendations(aqi) {
@@ -735,8 +1071,135 @@ class AirQualityApp {
       console.log('✅ Weather chart initialized');
     }
 
+    // Initialize Forecast Chart
+    const forecastCtx = document.getElementById('forecastChart');
+    if (forecastCtx) {
+      this.forecastChart = new Chart(forecastCtx.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Temperature (°C)',
+            data: [],
+            borderColor: '#ed8936',
+            backgroundColor: 'rgba(237, 137, 54, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#ed8936',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#ffffff',
+              bodyColor: '#ffffff',
+              borderColor: '#ed8936',
+              borderWidth: 1,
+              cornerRadius: 8
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)',
+                drawBorder: false
+              },
+              ticks: {
+                font: { size: 11 },
+                color: '#6b7280'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)',
+                drawBorder: false
+              },
+              ticks: {
+                font: { size: 11 },
+                color: '#6b7280',
+                maxTicksLimit: 12
+              }
+            }
+          }
+        }
+      });
+      console.log('✅ Forecast chart initialized');
+    }
+
+    // Initialize Pollutant Chart
+    const pollutantCtx = document.getElementById('pollutantChart');
+    if (pollutantCtx) {
+      this.pollutantChart = new Chart(pollutantCtx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['PM2.5', 'PM10', 'NO₂', 'O₃', 'CO', 'SO₂'],
+          datasets: [{
+            data: [25, 35, 15, 20, 3, 2],
+            backgroundColor: [
+              '#f56565',
+              '#ed8936',
+              '#ecc94b',
+              '#48bb78',
+              '#38b2ac',
+              '#667eea'
+            ],
+            borderWidth: 0,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+                padding: 20,
+                font: {
+                  size: 12,
+                  weight: '500'
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#ffffff',
+              bodyColor: '#ffffff',
+              borderColor: '#667eea',
+              borderWidth: 1,
+              cornerRadius: 8,
+              callbacks: {
+                label: function(context) {
+                  return `${context.label}: ${context.parsed}%`;
+                }
+              }
+            }
+          }
+        }
+      });
+      console.log('✅ Pollutant chart initialized');
+    }
+
     // Generate some sample historical data for demonstration
     this.generateSampleData();
+    this.generateForecastData();
   }
 
   generateSampleData() {
@@ -775,6 +1238,33 @@ class AirQualityApp {
 
     this.updateCharts();
     console.log('✅ Sample data generated and charts updated');
+  }
+
+  generateForecastData() {
+    console.log('🔮 Generating forecast data...');
+    
+    if (!this.forecastChart) return;
+    
+    const labels = [];
+    const tempData = [];
+    const now = new Date();
+    
+    for (let i = 0; i < 24; i++) {
+      const time = new Date(now.getTime() + i * 60 * 60 * 1000);
+      labels.push(time.toLocaleTimeString('en-IN', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }));
+      
+      // Generate realistic temperature forecast
+      const hour = time.getHours();
+      const baseTemp = 25 + Math.sin((hour - 6) * Math.PI / 12) * 6;
+      tempData.push(Math.round((baseTemp + Math.random() * 2) * 10) / 10);
+    }
+    
+    this.forecastChart.data.labels = labels;
+    this.forecastChart.data.datasets[0].data = tempData;
+    this.forecastChart.update('none');
   }
 
   updateCharts() {
@@ -859,6 +1349,11 @@ class AirQualityApp {
     this.weatherChart.data.datasets[1].data = filteredWeatherData.map(d => d.humidity);
     this.weatherChart.update('none');
 
+    // Update forecast chart if needed
+    if (this.forecastChart) {
+      // Forecast chart uses static hourly data, so no need to update based on period
+    }
+
     console.log(`📊 Charts updated for period: ${period}`);
   }
 
@@ -874,6 +1369,101 @@ class AirQualityApp {
         this.loadCurrentData();
       });
     }
+
+    // Location selector
+    const locationSelect = document.getElementById('locationSelect');
+    if (locationSelect) {
+      locationSelect.addEventListener('change', (e) => {
+        const newLocation = e.target.value;
+        if (newLocation !== this.currentLocation) {
+          console.log(`📍 Switching to location: ${newLocation}`);
+          this.currentLocation = newLocation;
+          
+          // Update current location display
+          const currentLocationElement = document.getElementById('currentLocation');
+          if (currentLocationElement) {
+            currentLocationElement.textContent = this.locations[newLocation].name;
+          }
+          
+          // Reload data for new location
+          this.retryCount = 0;
+          this.loadCurrentData();
+          this.loadLocationComparison();
+        }
+      });
+    }
+
+    // Comparison metric buttons
+    document.querySelectorAll('.comparison-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const metric = e.target.dataset.metric;
+        if (metric && metric !== this.currentComparisonMetric) {
+          console.log(`📊 Switching comparison metric to: ${metric}`);
+          this.currentComparisonMetric = metric;
+          
+          // Update active button
+          e.target.parentElement.querySelectorAll('.comparison-btn').forEach(b => 
+            b.classList.remove('active')
+          );
+          e.target.classList.add('active');
+          
+          this.loadLocationComparison();
+        }
+      });
+    });
+
+    // Location item clicks
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.location-item')) {
+        const locationItem = e.target.closest('.location-item');
+        const location = locationItem.dataset.location;
+        if (location && location !== this.currentLocation) {
+          console.log(`📍 Clicked location: ${location}`);
+          
+          // Update location selector
+          if (locationSelect) {
+            locationSelect.value = location;
+            locationSelect.dispatchEvent(new Event('change'));
+          }
+        }
+      }
+    });
+
+    // Share button
+    const shareBtn = document.getElementById('shareBtn');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', () => {
+        this.shareWeatherData();
+      });
+    }
+
+    // Dismiss alerts
+    const dismissAlerts = document.getElementById('dismissAlerts');
+    if (dismissAlerts) {
+      dismissAlerts.addEventListener('click', () => {
+        const alertsSection = document.getElementById('alertsSection');
+        if (alertsSection) {
+          alertsSection.style.display = 'none';
+          this.alertsShown = false;
+        }
+      });
+    }
+
+    // Forecast toggle buttons
+    document.querySelectorAll('[data-forecast]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const forecastType = e.target.dataset.forecast;
+        console.log(`🔮 Switching forecast to: ${forecastType}`);
+        
+        // Update active button
+        e.target.parentElement.querySelectorAll('.chart-btn').forEach(b => 
+          b.classList.remove('active')
+        );
+        e.target.classList.add('active');
+        
+        this.updateForecastChart(forecastType);
+      });
+    });
 
     // Chart period buttons
     document.querySelectorAll('.chart-btn').forEach(btn => {
@@ -905,6 +1495,109 @@ class AirQualityApp {
     });
 
     console.log('✅ Event listeners set up');
+  }
+
+  updateForecastChart(type) {
+    if (!this.forecastChart) return;
+    
+    if (type === 'aqi') {
+      // Switch to AQI forecast
+      this.forecastChart.data.datasets[0].label = 'AQI Forecast';
+      this.forecastChart.data.datasets[0].borderColor = '#667eea';
+      this.forecastChart.data.datasets[0].backgroundColor = 'rgba(102, 126, 234, 0.1)';
+      this.forecastChart.data.datasets[0].pointBackgroundColor = '#667eea';
+      
+      // Generate AQI forecast data
+      const aqiData = [];
+      for (let i = 0; i < 24; i++) {
+        const baseAqi = 2.5 + Math.sin(i * 0.2) * 1.2 + Math.random() * 0.5;
+        aqiData.push(Math.max(1, Math.min(5, Math.round(baseAqi * 10) / 10)));
+      }
+      this.forecastChart.data.datasets[0].data = aqiData;
+    } else {
+      // Switch back to temperature
+      this.forecastChart.data.datasets[0].label = 'Temperature (°C)';
+      this.forecastChart.data.datasets[0].borderColor = '#ed8936';
+      this.forecastChart.data.datasets[0].backgroundColor = 'rgba(237, 137, 54, 0.1)';
+      this.forecastChart.data.datasets[0].pointBackgroundColor = '#ed8936';
+      
+      this.generateForecastData();
+      return; // generateForecastData already updates the chart
+    }
+    
+    this.forecastChart.update('none');
+  }
+
+  shareWeatherData() {
+    console.log('📤 Sharing weather data...');
+    
+    const currentLocation = this.locations[this.currentLocation].name;
+    const temp = document.getElementById('temperature')?.textContent || '--°C';
+    const aqi = document.getElementById('aqiValue')?.textContent || '--';
+    const aqiLevel = document.getElementById('aqiLevel')?.textContent || 'Unknown';
+    
+    const shareText = `🌡️ Current weather in ${currentLocation}:
+Temperature: ${temp}
+Air Quality: ${aqi} (${aqiLevel})
+
+Check live updates at: ${window.location.href}
+
+#BengaluruWeather #AirQuality #WeatherUpdate`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Bengaluru Weather Update',
+        text: shareText,
+        url: window.location.href
+      }).catch(err => console.log('Error sharing:', err));
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(shareText).then(() => {
+        this.showToast('Weather data copied to clipboard!', 'success');
+      }).catch(() => {
+        this.showToast('Unable to copy to clipboard', 'error');
+      });
+    }
+  }
+
+  showToast(message, type = 'info') {
+    // Remove existing toasts
+    document.querySelectorAll('.toast').forEach(toast => toast.remove());
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+      <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+      <span>${message}</span>
+    `;
+    
+    // Add toast styles
+    toast.style.cssText = `
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      background: ${type === 'success' ? '#48bb78' : type === 'error' ? '#f56565' : '#667eea'};
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      z-index: 1001;
+      animation: slideIn 0.3s ease-out;
+      max-width: 300px;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.style.animation = 'slideOut 0.3s ease-in forwards';
+        setTimeout(() => toast.remove(), 300);
+      }
+    }, 3000);
   }
 
   startAutoRefresh() {
