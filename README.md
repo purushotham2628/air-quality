@@ -6,53 +6,87 @@
 </p>
 
 <p align="center">
-  <img src="client/assets/dashboard-top.png" alt="Dashboard Top Screenshot" width="100%">
+  <img src="client/assets/dashboard-overview.png" alt="Dashboard Overview Screenshot" width="100%">
   <br><br>
-  <img src="client/assets/dashboard-bottom.png" alt="Dashboard Bottom Screenshot" width="100%">
+  <img src="client/assets/charts-section.png" alt="Charts Section Screenshot" width="100%">
+  <br><br>
+  <img src="client/assets/mobile-view.png" alt="Mobile View Screenshot" width="100%">
 </p>
 
 ---
 
 ## 🚀 Overview
 
-This project is a **live and dynamic web application** designed to visualize:
-- 🌡️ Current weather conditions
-- 🌬️ Real-time air quality levels
-- 📊 Interactive trend charts
-- 🏥 Health-based recommendations
+This project is a **comprehensive and interactive web application** designed to provide real-time environmental monitoring for Bengaluru. The dashboard features:
 
-It features a beautiful glassmorphism interface with responsive design and animated transitions.
+- 🌡️ **Live Weather Conditions** - Current temperature, humidity, wind, and atmospheric data
+- 🌬️ **Real-time Air Quality Monitoring** - AQI levels with detailed pollutant breakdown
+- 📊 **Interactive Data Visualization** - Multiple chart types with time-based filtering
+- 🏙️ **Multi-location Comparison** - Compare conditions across different areas of Bengaluru
+- 📱 **Responsive Design** - Optimized for desktop, tablet, and mobile devices
+- 🔄 **Auto-refresh Functionality** - Data updates every 10 minutes automatically
+- 🏥 **Health Recommendations** - Personalized advice based on current air quality
+
+The application features a modern glassmorphism UI with smooth animations, hover effects, and an intuitive user experience.
 
 ---
 
 ## ✨ Key Features
 
 ### 🌡️ Weather Dashboard
-- Live temperature and "feels like"
-- Animated descriptions (e.g. Overcast, Sunny)
-- Wind, Humidity, Pressure, Visibility
+- **Current Conditions**: Live temperature with "feels like" readings
+- **Detailed Metrics**: Wind speed/direction, humidity, pressure, visibility
+- **Weather Descriptions**: Animated weather condition descriptions
+- **UV Index & Dew Point**: Additional environmental parameters
+- **Weather Icons**: Dynamic icons based on current conditions
 
 ### 🌬️ Air Quality Insights
-- Real-time **AQI** status (Good to Hazardous)
-- PM2.5, PM10, NO₂, and O₃ concentrations
-- Color-coded bars with health implications
+- **Real-time AQI Status**: Color-coded levels from Good to Hazardous
+- **Pollutant Breakdown**: PM2.5, PM10, NO₂, O₃, CO, SO₂, NH₃ concentrations
+- **Visual Progress Bars**: Color-coded bars showing pollutant levels vs. safe limits
+- **Historical Comparison**: Compare with yesterday and last week's data
+- **Health Impact Indicators**: Clear visual cues for health implications
 
-### 📊 Trend Visualizations
-- Line charts with 24H, 7D, 30D ranges
-- Temperature vs Humidity
-- AQI and pollutants over time
-- Powered by Chart.js
+### 📊 Advanced Data Visualization
+- **AQI Trends Chart**: Line chart showing air quality over 24H/7D/30D periods
+- **Weather Trends Chart**: Dual-axis chart for temperature and humidity
+- **24-Hour Forecast**: Bar chart with hourly temperature/AQI predictions
+- **Pollutant Breakdown**: Doughnut chart showing relative pollutant concentrations
+- **Interactive Controls**: Time period selection and metric switching
+- **Smooth Animations**: Chart transitions and data loading effects
 
-### 🏥 Smart Health Suggestions
-- Activity advice (e.g., jogging, staying indoors)
-- Recommendations for sensitive groups
-- Visual icons and alert tags
+### 🏙️ Location Intelligence
+- **Multi-area Monitoring**: Track 8 different areas across Bengaluru
+- **Comparative Analysis**: Side-by-side comparison of AQI, temperature, and humidity
+- **Location Selector**: Easy switching between monitoring locations
+- **Current Location Highlighting**: Visual indication of selected area
 
-### 🎨 Design
-- **Glassmorphism** UI with soft gradients
-- Smooth value transitions & loading shimmer
-- Dark/light theme ready
-- Mobile-first responsive layout
+### 📅 Forecasting & Trends
+- **7-Day Weather Forecast**: Daily high/low temperatures with weather icons
+- **AQI Predictions**: Future air quality estimates
+- **Trend Analysis**: Visual indicators showing improving/worsening conditions
+- **Historical Data**: Access to past 30 days of environmental data
+
+### 🏥 Smart Health Recommendations
+- **Activity Guidance**: Personalized advice for outdoor activities
+- **Sensitive Group Alerts**: Special recommendations for vulnerable populations
+- **Mask Recommendations**: When to wear protective equipment
+- **Indoor Air Quality Tips**: Suggestions for maintaining clean indoor air
+- **Exercise Guidelines**: Safe activity levels based on current conditions
+
+### 🚨 Alert System
+- **Real-time Alerts**: Automatic notifications for poor air quality
+- **Threshold Monitoring**: Alerts when pollutants exceed safe levels
+- **Dismissible Notifications**: User-controlled alert management
+- **Visual Indicators**: Color-coded status throughout the interface
+
+### 🎨 Modern Design & UX
+- **Glassmorphism UI**: Translucent cards with backdrop blur effects
+- **Gradient Backgrounds**: Beautiful color transitions and visual depth
+- **Micro-interactions**: Hover effects, button animations, and transitions
+- **Loading States**: Smooth loading animations and skeleton screens
+- **Error Handling**: Graceful error states with retry options
+- **Accessibility**: Keyboard navigation and screen reader support
 
 ---
 
@@ -61,19 +95,21 @@ It features a beautiful glassmorphism interface with responsive design and anima
 ```
 bengaluru-air-quality-monitor/
 ├── client/
-│   ├── index.html
-│   ├── style.css
-│   ├── script.js
+│   ├── index.html          # Main dashboard HTML
+│   ├── style.css           # Complete styling with glassmorphism
+│   ├── script.js           # Interactive JavaScript functionality
 │   └── assets/
-│       ├── dashboard-top.png
-│       └── dashboard-bottom.png
+│       ├── dashboard-overview.png
+│       ├── charts-section.png
+│       └── mobile-view.png
 ├── server/
-│   ├── server.js
+│   ├── server.js           # Express server setup
 │   └── routes/
-│       └── api.js
-├── .env.example
-├── package.json
-└── README.md
+│       └── api.js          # API endpoints for weather & air quality
+├── .env.example            # Environment variables template
+├── package.json            # Dependencies and scripts
+├── LICENSE                 # MIT License
+└── README.md              # This file
 ```
 
 ---
@@ -81,105 +117,330 @@ bengaluru-air-quality-monitor/
 ## 🔧 Setup & Installation
 
 ### 📋 Requirements
-- Node.js v16 or higher
-- OpenWeatherMap API Key
+- **Node.js** v16 or higher
+- **OpenWeatherMap API Key** (free tier available)
+- **Modern web browser** with JavaScript enabled
 
-### ⚙️ Steps
+### ⚙️ Quick Start
 
 ```bash
-# 1. Clone the repo
+# 1. Clone the repository
 git clone https://github.com/purushotham2628/air-quality.git
 cd air-quality
 
 # 2. Install dependencies
 npm install
 
-# 3. Add your API key
+# 3. Configure environment variables
 cp .env.example .env
-# Edit .env and add:
-# API_KEY=your_openweathermap_api_key
+# Edit .env and add your OpenWeatherMap API key:
+# API_KEY=your_openweathermap_api_key_here
 # PORT=3000
 
-# 4. Start the server
+# 4. Start the development server
 npm start
 
-# 5. View at
-http://localhost:3000
+# 5. Open your browser
+# Navigate to http://localhost:3000
 ```
+
+### 🔑 Getting an API Key
+
+1. Visit [OpenWeatherMap](https://openweathermap.org/api)
+2. Sign up for a free account
+3. Navigate to the API Keys section
+4. Copy your API key to the `.env` file
 
 ---
 
 ## 🌐 API Endpoints
 
-| Method | Endpoint              | Description                            |
-|--------|------------------------|----------------------------------------|
-| GET    | `/api/weather`         | Returns current weather data           |
-| GET    | `/api/air-quality`     | Returns current air quality and AQI    |
-| GET    | `/api/historical/:type?period=24h` | Returns AQI or weather trend data   |
+| Method | Endpoint                           | Description                                    |
+|--------|-----------------------------------|------------------------------------------------|
+| GET    | `/api/weather`                    | Current weather data for Bengaluru            |
+| GET    | `/api/air-quality`                | Current air quality and pollutant levels      |
+| GET    | `/api/historical/aqi?period=24h`  | Historical AQI data (24h/7d/30d)             |
+| GET    | `/api/historical/weather?period=24h` | Historical weather data (24h/7d/30d)       |
+
+### 📊 Response Examples
+
+**Weather Data:**
+```json
+{
+  "temperature": 26.5,
+  "feels_like": 28.2,
+  "humidity": 65,
+  "pressure": 1013,
+  "description": "partly cloudy",
+  "wind_speed": 12.5,
+  "visibility": 10,
+  "timestamp": "2025-01-27T10:30:00.000Z"
+}
+```
+
+**Air Quality Data:**
+```json
+{
+  "aqi": 3,
+  "pm2_5": 25.4,
+  "pm10": 45.2,
+  "no2": 18.7,
+  "o3": 85.3,
+  "timestamp": "2025-01-27T10:30:00.000Z"
+}
+```
 
 ---
 
-## 🔄 Auto-Refresh Logic
+## 🔄 Features & Functionality
 
-- Refreshes data every 10 minutes
-- Manual refresh available via button or `Ctrl + R`
-- Shows "Updated at" timestamp
+### ⚡ Real-time Updates
+- **Auto-refresh**: Data refreshes every 10 minutes automatically
+- **Manual refresh**: Click the refresh button or press `Ctrl+R`
+- **Live timestamps**: Shows when data was last updated
+- **Loading indicators**: Visual feedback during data fetching
+
+### 🎛️ Interactive Controls
+- **Chart time periods**: Switch between 24H, 7D, and 30D views
+- **Location selector**: Choose from 8 different Bengaluru areas
+- **Metric comparison**: Toggle between AQI, temperature, and humidity
+- **Forecast toggle**: Switch between temperature and AQI forecasts
+
+### 📱 Responsive Design
+- **Mobile-first**: Optimized for smartphones and tablets
+- **Adaptive layouts**: Grid systems that adjust to screen size
+- **Touch-friendly**: Large buttons and touch targets
+- **Performance optimized**: Fast loading on all devices
+
+### ⌨️ Keyboard Shortcuts
+- **Ctrl+R**: Refresh all data
+- **Escape**: Dismiss alerts and notifications
+- **Tab navigation**: Full keyboard accessibility
+
+---
+
+## 🧪 Development
+
+### 🛠️ Development Mode
+```bash
+# Install nodemon for auto-restart
+npm install -g nodemon
+
+# Start development server with auto-reload
+npm run dev
+```
+
+### 🔍 Debugging
+- Open browser developer tools (F12)
+- Check console for error messages
+- Network tab shows API request/response data
+- Use `window.airQualityMonitor` object for debugging
+
+### 🧪 Testing API Endpoints
+```bash
+# Test weather endpoint
+curl http://localhost:3000/api/weather
+
+# Test air quality endpoint
+curl http://localhost:3000/api/air-quality
+
+# Test historical data
+curl "http://localhost:3000/api/historical/aqi?period=24h"
+```
+
+---
+
+## 💡 Technology Stack
+
+### Frontend
+- **HTML5**: Semantic markup with accessibility features
+- **CSS3**: Modern styling with flexbox, grid, and animations
+- **Vanilla JavaScript**: ES6+ features, async/await, fetch API
+- **Chart.js**: Interactive and responsive data visualization
+- **Font Awesome**: Icon library for UI elements
+- **Google Fonts**: Inter font family for typography
+
+### Backend
+- **Node.js**: JavaScript runtime environment
+- **Express.js**: Web application framework
+- **dotenv**: Environment variable management
+- **OpenWeatherMap API**: Weather and air pollution data
+
+### Design & UX
+- **Glassmorphism**: Modern UI design trend
+- **Responsive Design**: Mobile-first approach
+- **CSS Grid & Flexbox**: Modern layout techniques
+- **CSS Animations**: Smooth transitions and micro-interactions
+
+---
+
+## 📊 Data Sources
+
+### Weather Data
+- **Provider**: OpenWeatherMap Current Weather API
+- **Update Frequency**: Every 10 minutes
+- **Coverage**: Bengaluru metropolitan area
+- **Parameters**: Temperature, humidity, pressure, wind, visibility
+
+### Air Quality Data
+- **Provider**: OpenWeatherMap Air Pollution API
+- **Update Frequency**: Every 10 minutes
+- **Pollutants**: PM2.5, PM10, NO₂, O₃, CO, SO₂, NH₃
+- **Standards**: WHO Air Quality Guidelines
+
+### Historical Data
+- **Retention**: 30 days of historical data
+- **Granularity**: Hourly data points
+- **Trends**: Statistical analysis and pattern recognition
 
 ---
 
 ## 🔒 Security & Performance
 
-- Uses `.env` for API secrets
-- Sanitized API response handling
-- Graceful UI error states
-- Supports rate limiting (add-on)
+### Security Features
+- **Environment Variables**: API keys stored securely
+- **Input Validation**: Sanitized API responses
+- **Error Handling**: Graceful failure states
+- **CORS Protection**: Controlled cross-origin requests
 
----
+### Performance Optimizations
+- **Caching**: Browser caching for static assets
+- **Compression**: Gzipped responses
+- **Lazy Loading**: Charts load on demand
+- **Debounced Updates**: Prevents excessive API calls
+- **Optimized Images**: Compressed screenshots and assets
 
-## 🧪 Development Mode
-
-```bash
-npm run dev
-```
-
----
-
-## 💡 Tech Stack
-
-- **Frontend**: HTML5, CSS3, Vanilla JS, Chart.js
-- **Backend**: Node.js, Express
-- **API**: OpenWeatherMap (Weather + Air Pollution)
-- **Styling**: Flexbox, CSS Grid, transitions
+### Rate Limiting
+- **API Calls**: Limited to prevent quota exhaustion
+- **Auto-refresh**: Intelligent timing to balance freshness and limits
+- **Error Recovery**: Automatic retry with exponential backoff
 
 ---
 
 ## 📞 Troubleshooting
 
-> 💬 **Not loading?**  
-> - Check `.env` setup  
-> - Verify API key is active  
-> - Use browser console for debug  
+### Common Issues
 
-> 📉 **Chart not displaying?**  
-> - Confirm Chart.js is loaded  
-> - Ensure canvas elements exist  
-> - Look for JS console errors
+**🚫 Charts not displaying?**
+- Verify Chart.js is loaded correctly
+- Check browser console for JavaScript errors
+- Ensure canvas elements exist in DOM
+- Try refreshing the page
+
+**📡 Data not loading?**
+- Check `.env` file configuration
+- Verify API key is valid and active
+- Check network connectivity
+- Review server logs for errors
+
+**🎨 Styling issues?**
+- Clear browser cache
+- Check CSS file is loading
+- Verify no conflicting styles
+- Test in different browsers
+
+**📱 Mobile display problems?**
+- Check viewport meta tag
+- Test responsive breakpoints
+- Verify touch interactions work
+- Check for horizontal scrolling
+
+### Debug Commands
+```bash
+# Check server status
+curl http://localhost:3000/api/weather
+
+# View server logs
+npm start
+
+# Test API key
+echo $API_KEY
+
+# Check dependencies
+npm list
+```
+
+---
+
+## 🚀 Deployment
+
+### Production Deployment
+```bash
+# Build for production
+npm run build
+
+# Start production server
+NODE_ENV=production npm start
+```
+
+### Environment Variables
+```bash
+# Production .env file
+API_KEY=your_production_api_key
+PORT=3000
+NODE_ENV=production
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Development Guidelines
+- Follow existing code style
+- Add comments for complex logic
+- Test on multiple browsers
+- Ensure mobile compatibility
+- Update documentation as needed
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- [OpenWeatherMap](https://openweathermap.org/)
-- [Chart.js](https://www.chartjs.org/)
-- [Font Awesome](https://fontawesome.com/)
-- [Google Fonts - Inter](https://fonts.google.com/specimen/Inter)
+- **[OpenWeatherMap](https://openweathermap.org/)** - Weather and air quality data
+- **[Chart.js](https://www.chartjs.org/)** - Beautiful and responsive charts
+- **[Font Awesome](https://fontawesome.com/)** - Comprehensive icon library
+- **[Google Fonts](https://fonts.google.com/specimen/Inter)** - Inter font family
+- **[MDN Web Docs](https://developer.mozilla.org/)** - Web development resources
+- **[CSS-Tricks](https://css-tricks.com/)** - CSS techniques and best practices
 
 ---
 
-<p align="center"><strong>Made with ❤️ for a cleaner, smarter Bengaluru 🌱</strong></p>
+## 📈 Future Enhancements
+
+- **🔔 Push Notifications**: Browser notifications for air quality alerts
+- **📍 GPS Location**: Automatic location detection
+- **🌍 Multi-city Support**: Expand to other Indian cities
+- **📊 Advanced Analytics**: Machine learning predictions
+- **💾 Data Export**: Download historical data as CSV/JSON
+- **🎨 Theme Customization**: Dark/light mode toggle
+- **🔗 Social Sharing**: Share air quality reports
+- **📱 PWA Support**: Offline functionality and app-like experience
+
+---
+
+<p align="center">
+  <strong>Made with ❤️ for a cleaner, smarter Bengaluru 🌱</strong><br>
+  <em>Monitoring today for a better tomorrow</em>
+</p>
+
+<p align="center">
+  <a href="#-overview">Overview</a> •
+  <a href="#-setup--installation">Setup</a> •
+  <a href="#-features--functionality">Features</a> •
+  <a href="#-troubleshooting">Troubleshooting</a> •
+  <a href="#-contributing">Contributing</a>
+</p>
