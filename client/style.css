@@ -11,12 +11,14 @@ body {
   color: #1a202c;
   line-height: 1.6;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 /* Header */
@@ -1005,6 +1007,29 @@ body {
 
 #aqiChart, #weatherChart {
   height: 300px !important;
+  max-height: 300px !important;
+}
+
+#forecastChart, #pollutantChart {
+  height: 300px !important;
+  max-height: 300px !important;
+}
+
+/* Fix chart container scrolling */
+.chart-container canvas {
+  max-width: 100% !important;
+  height: 300px !important;
+  display: block;
+}
+
+/* Prevent infinite scrolling */
+.charts-section {
+  overflow: visible;
+}
+
+.chart-container {
+  overflow: hidden;
+  position: relative;
 }
 
 /* Recommendations */
@@ -1304,6 +1329,11 @@ body {
     justify-content: center;
   }
   
+  #aqiChart, #weatherChart, #forecastChart, #pollutantChart {
+    height: 250px !important;
+    max-height: 250px !important;
+  }
+  
   .weather-card, .aqi-card, .chart-container, .recommendation-card {
     padding: 2rem;
   }
@@ -1360,6 +1390,11 @@ body {
     font-size: 3rem;
   }
   
+  #aqiChart, #weatherChart, #forecastChart, #pollutantChart {
+    height: 200px !important;
+    max-height: 200px !important;
+  }
+  
   .chart-btn {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
@@ -1387,4 +1422,22 @@ body {
   .weather-card, .aqi-card, .chart-container, .recommendation-card {
     border: 2px solid #000;
   }
+}
+
+/* Smooth scrolling for all elements */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Fix for chart responsiveness */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+
+.chart-container canvas {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 100% !important;
 }
