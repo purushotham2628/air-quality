@@ -6,12 +6,15 @@
 </p>
 
 <p align="center">
-  <img src="client/assets/dashboard-overview.png" alt="Dashboard Overview Screenshot" width="100%">
+  <img src="client/assets/bengaluru-areas-comparison.png" alt="Bengaluru Areas Comparison Screenshot" width="100%">
   <br><br>
-  <img src="client/assets/charts-section.png" alt="Charts Section Screenshot" width="100%">
+  <img src="client/assets/24h-weather-air-quality.png" alt="24-Hour Weather & Air Quality Trends" width="100%">
   <br><br>
-  <img src="client/assets/mobile-view.png" alt="Mobile View Screenshot" width="100%">
+  <img src="client/assets/7-day-forecast.png" alt="7-Day Forecast Screenshot" width="100%">
+  <br><br>
+  <img src="client/assets/health-recommendations.png" alt="Health Recommendations Screenshot" width="100%">
 </p>
+
 
 ---
 
