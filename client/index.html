@@ -13,7 +13,36 @@
     <!-- Header -->
     <header class="header">
       <div class="header-content">
-        <div class="location">
+        <div class="header-left">
+          <div class="location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="currentLocation">Bengaluru, Karnataka</span>
+          </div>
+        </div>
+        
+        <div class="header-center">
+          <div class="last-updated">
+            <i class="fas fa-clock"></i>
+            <span id="lastUpdated">Loading...</span>
+          </div>
+        </div>
+        
+        <div class="header-right">
+          <div class="location-selector">
+            <select id="locationSelect" class="location-dropdown">
+              <option value="central">Central Bengaluru</option>
+              <option value="whitefield">Whitefield</option>
+              <option value="koramangala">Koramangala</option>
+              <option value="indiranagar">Indiranagar</option>
+              <option value="electronic-city">Electronic City</option>
+              <option value="hebbal">Hebbal</option>
+              <option value="jayanagar">Jayanagar</option>
+              <option value="marathahalli">Marathahalli</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </header>
           <i class="fas fa-map-marker-alt"></i>
           <span>Bengaluru, Karnataka</span>
         </div>
