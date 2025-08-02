@@ -36,6 +36,87 @@
       </div>
     </header>
 
+    <!-- New Features Section -->
+    <section class="features-section" id="featuresSection">
+      <div class="feature-card">
+        <div class="feature-header">
+          <div class="feature-icon">
+            <i class="fas fa-brain"></i>
+          </div>
+          <div class="feature-title">AI Predictions</div>
+        </div>
+        <div class="feature-content">
+          <p>Advanced machine learning algorithms predict air quality trends up to 48 hours in advance, helping you plan your activities better.</p>
+        </div>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-header">
+          <div class="feature-icon">
+            <i class="fas fa-bell"></i>
+          </div>
+          <div class="feature-title">Smart Alerts</div>
+        </div>
+        <div class="feature-content">
+          <p>Personalized notifications based on your health profile and activity preferences. Get alerts before air quality deteriorates.</p>
+        </div>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-header">
+          <div class="feature-icon">
+            <i class="fas fa-route"></i>
+          </div>
+          <div class="feature-title">Route Optimizer</div>
+        </div>
+        <div class="feature-content">
+          <p>Find the cleanest routes for your daily commute. Our system analyzes real-time air quality data across the city.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- AQI Scale Reference -->
+    <section class="aqi-scale">
+      <h3><i class="fas fa-info-circle"></i> Air Quality Index Scale</h3>
+      <div class="scale-items">
+        <div class="scale-item">
+          <div class="scale-color aqi-good"></div>
+          <div class="scale-info">
+            <div class="scale-level">Good (0-50)</div>
+            <div class="scale-range">Air quality is satisfactory</div>
+          </div>
+        </div>
+        <div class="scale-item">
+          <div class="scale-color aqi-fair"></div>
+          <div class="scale-info">
+            <div class="scale-level">Moderate (51-100)</div>
+            <div class="scale-range">Acceptable for most people</div>
+          </div>
+        </div>
+        <div class="scale-item">
+          <div class="scale-color aqi-moderate"></div>
+          <div class="scale-info">
+            <div class="scale-level">Unhealthy for Sensitive (101-150)</div>
+            <div class="scale-range">Sensitive groups may experience symptoms</div>
+          </div>
+        </div>
+        <div class="scale-item">
+          <div class="scale-color aqi-poor"></div>
+          <div class="scale-info">
+            <div class="scale-level">Unhealthy (151-200)</div>
+            <div class="scale-range">Everyone may experience health effects</div>
+          </div>
+        </div>
+        <div class="scale-item">
+          <div class="scale-color aqi-very-poor"></div>
+          <div class="scale-info">
+            <div class="scale-level">Very Unhealthy (201-300)</div>
+            <div class="scale-range">Health alert for everyone</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Main Dashboard -->
     <main class="dashboard">
       <!-- Current Conditions -->
@@ -283,6 +364,26 @@
 
       <!-- Statistics -->
       <div class="stats-footer" id="statsFooter">
+        <div class="stat-item">
+          <span class="stat-number" id="totalReadings">1,247</span>
+          <div class="stat-label">Total Readings</div>
+          <div class="stat-description">Data points collected today</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="avgAqi">2.3</span>
+          <div class="stat-label">Average AQI</div>
+          <div class="stat-description">Last 24 hours</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="trendDirection">↗️</span>
+          <div class="stat-label">Trend</div>
+          <div class="stat-description">Improving conditions</div>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="nextUpdate">8m</span>
+          <div class="stat-label">Next Update</div>
+          <div class="stat-description">Auto-refresh countdown</div>
+        </div>
       </div>
     </main>
 

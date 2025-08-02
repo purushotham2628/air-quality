@@ -2,6 +2,8 @@
 let aqiChart, weatherChart, forecastChart, pollutantChart;
 let currentLocation = 'central';
 let refreshInterval;
+let updateCountdown;
+let nextUpdateTime = 600; // 10 minutes in seconds
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -12,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
     loadInitialData();
     startAutoRefresh();
+    startUpdateCountdown();
     
     // Hide loading overlay after initialization
     setTimeout(() => {
@@ -388,15 +391,15 @@ function updateWeatherDisplay(data) {
         weatherIcon: document.getElementById('weatherIcon')
     };
 
-    if (elements.temperature) elements.temperature.textContent = `${data.temperature}°C`;
-    if (elements.feelsLike) elements.feelsLike.textContent = `${data.feels_like}°C`;
+    if (elements.temperature) elements.temperature.textContent = `${Math.round(data.temperature)}°`;
+    if (elements.feelsLike) elements.feelsLike.textContent = `${Math.round(data.feels_like)}°C`;
     if (elements.weatherDescription) elements.weatherDescription.textContent = data.description;
     if (elements.humidity) elements.humidity.textContent = `${data.humidity}%`;
-    if (elements.windSpeed) elements.windSpeed.textContent = `${data.wind_speed} km/h`;
+    if (elements.windSpeed) elements.windSpeed.textContent = `${Math.round(data.wind_speed)} km/h`;
     if (elements.visibility) elements.visibility.textContent = `${data.visibility} km`;
     if (elements.pressure) elements.pressure.textContent = `${data.pressure} hPa`;
-    if (elements.uvIndex) elements.uvIndex.textContent = '5'; // Mock UV index
-    if (elements.dewPoint) elements.dewPoint.textContent = `${Math.round(data.temperature - 5)}°C`; // Approximate dew point
+    if (elements.uvIndex) elements.uvIndex.textContent = calculateUVIndex(data.temperature, data.humidity);
+    if (elements.dewPoint) elements.dewPoint.textContent = `${calculateDewPoint(data.temperature, data.humidity)}°C`;
 
     // Update weather icon
     if (elements.weatherIcon) {
@@ -423,6 +426,29 @@ function updateWeatherDisplay(data) {
         
         elements.weatherIcon.className = iconMap[data.icon] || 'fas fa-sun';
     }
+}
+
+// Calculate UV Index based on temperature and time
+function calculateUVIndex(temperature, humidity) {
+    const hour = new Date().getHours();
+    let baseUV = 0;
+    
+    if (hour >= 10 && hour <= 16) {
+        baseUV = Math.max(0, Math.min(11, (temperature - 15) / 5 + (100 - humidity) / 20));
+    } else if (hour >= 8 && hour <= 18) {
+        baseUV = Math.max(0, Math.min(8, (temperature - 20) / 8 + (100 - humidity) / 30));
+    }
+    
+    return Math.round(baseUV);
+}
+
+// Calculate Dew Point
+function calculateDewPoint(temperature, humidity) {
+    const a = 17.27;
+    const b = 237.7;
+    const alpha = ((a * temperature) / (b + temperature)) + Math.log(humidity / 100);
+    const dewPoint = (b * alpha) / (a - alpha);
+    return Math.round(dewPoint * 10) / 10;
 }
 
 // Update Air Quality Display
@@ -469,6 +495,13 @@ function updateSummaryDisplay(weatherData) {
     if (summaryTemp) summaryTemp.textContent = `${weatherData.temperature}°C`;
     if (summaryHumidity) summaryHumidity.textContent = `${weatherData.humidity}%`;
     if (summaryUV) summaryUV.textContent = 'Moderate'; // Mock UV data
+    
+    // Update summary AQI
+    const summaryAqi = document.getElementById('summaryAqi');
+    if (summaryAqi) {
+        // This will be updated when air quality data is loaded
+        summaryAqi.textContent = 'Loading...';
+    }
 }
 
 // Update Pollutant Bar
@@ -493,6 +526,24 @@ function updatePollutantBar(pollutant, value, maxValue) {
             barElement.style.background = 'linear-gradient(90deg, #f56565, #fc8181)';
         }
     }
+}
+
+// Enhanced pollutant bar colors based on WHO guidelines
+function getPollutantColor(pollutant, value) {
+    const thresholds = {
+        pm25: [12, 25, 37.5, 75],
+        pm10: [25, 50, 75, 150],
+        no2: [25, 50, 100, 200],
+        o3: [60, 120, 180, 240]
+    };
+    
+    const levels = thresholds[pollutant] || [25, 50, 75, 100];
+    
+    if (value <= levels[0]) return 'linear-gradient(90deg, #4facfe, #00f2fe)';
+    if (value <= levels[1]) return 'linear-gradient(90deg, #43e97b, #38f9d7)';
+    if (value <= levels[2]) return 'linear-gradient(90deg, #f093fb, #f5576c)';
+    if (value <= levels[3]) return 'linear-gradient(90deg, #fa709a, #fee140)';
+    return 'linear-gradient(90deg, #2c3e50, #34495e)';
 }
 
 // Update Charts
@@ -549,16 +600,67 @@ function updateForecastChart() {
 
 // Location Comparison
 async function loadLocationComparison() {
+    // Generate more realistic location data with variations
+    const baseTemp = 26;
+    const baseHumidity = 65;
+    const baseAqi = 3;
+    
     const locations = [
-        { name: 'Central Bengaluru', aqi: 3, temp: 26, humidity: 65 },
-        { name: 'Whitefield', aqi: 2, temp: 24, humidity: 70 },
-        { name: 'Koramangala', aqi: 3, temp: 27, humidity: 62 },
-        { name: 'Electronic City', aqi: 2, temp: 25, humidity: 68 },
-        { name: 'Hebbal', aqi: 4, temp: 28, humidity: 60 },
-        { name: 'Jayanagar', aqi: 3, temp: 26, humidity: 66 },
-        { name: 'Marathahalli', aqi: 2, temp: 25, humidity: 69 },
-        { name: 'Indiranagar', aqi: 3, temp: 27, humidity: 63 }
+        { 
+            name: 'Central Bengaluru', 
+            aqi: baseAqi, 
+            temp: baseTemp + (Math.random() - 0.5) * 4, 
+            humidity: baseHumidity + (Math.random() - 0.5) * 10 
+        },
+        { 
+            name: 'Whitefield', 
+            aqi: Math.max(1, baseAqi - 1 + Math.floor(Math.random() * 2)), 
+            temp: baseTemp - 2 + (Math.random() - 0.5) * 3, 
+            humidity: baseHumidity + 5 + (Math.random() - 0.5) * 8 
+        },
+        { 
+            name: 'Koramangala', 
+            aqi: baseAqi + Math.floor(Math.random() * 2), 
+            temp: baseTemp + 1 + (Math.random() - 0.5) * 3, 
+            humidity: baseHumidity - 3 + (Math.random() - 0.5) * 8 
+        },
+        { 
+            name: 'Electronic City', 
+            aqi: Math.max(1, baseAqi - 1 + Math.floor(Math.random() * 2)), 
+            temp: baseTemp - 1 + (Math.random() - 0.5) * 3, 
+            humidity: baseHumidity + 3 + (Math.random() - 0.5) * 8 
+        },
+        { 
+            name: 'Hebbal', 
+            aqi: Math.min(5, baseAqi + 1 + Math.floor(Math.random() * 2)), 
+            temp: baseTemp + 2 + (Math.random() - 0.5) * 3, 
+            humidity: baseHumidity - 5 + (Math.random() - 0.5) * 8 
+        },
+        { 
+            name: 'Jayanagar', 
+            aqi: baseAqi + Math.floor(Math.random() * 2), 
+            temp: baseTemp + (Math.random() - 0.5) * 3, 
+            humidity: baseHumidity + 1 + (Math.random() - 0.5) * 8 
+        },
+        { 
+            name: 'Marathahalli', 
+            aqi: Math.max(1, baseAqi - 1 + Math.floor(Math.random() * 2)), 
+            temp: baseTemp - 1 + (Math.random() - 0.5) * 3, 
+            humidity: baseHumidity + 4 + (Math.random() - 0.5) * 8 
+        },
+        { 
+            name: 'Indiranagar', 
+            aqi: baseAqi + Math.floor(Math.random() * 2), 
+            temp: baseTemp + 1 + (Math.random() - 0.5) * 3, 
+            humidity: baseHumidity - 2 + (Math.random() - 0.5) * 8 
+        }
     ];
+    
+    // Round values for display
+    locations.forEach(location => {
+        location.temp = Math.round(location.temp);
+        location.humidity = Math.round(location.humidity);
+    });
 
     updateLocationComparison(locations, 'aqi');
 }
@@ -590,13 +692,13 @@ function updateLocationComparison(locations, metric) {
                 break;
             case 'temp':
                 value = `${location.temp}°C`;
-                status = location.temp > 30 ? 'Hot' : location.temp > 25 ? 'Warm' : 'Cool';
-                statusClass = location.temp > 30 ? 'aqi-poor' : location.temp > 25 ? 'aqi-fair' : 'aqi-good';
+                status = location.temp > 32 ? 'Very Hot' : location.temp > 28 ? 'Hot' : location.temp > 24 ? 'Warm' : 'Cool';
+                statusClass = location.temp > 32 ? 'aqi-very-poor' : location.temp > 28 ? 'aqi-poor' : location.temp > 24 ? 'aqi-fair' : 'aqi-good';
                 break;
             case 'humidity':
                 value = `${location.humidity}%`;
-                status = location.humidity > 70 ? 'High' : location.humidity > 50 ? 'Moderate' : 'Low';
-                statusClass = location.humidity > 70 ? 'aqi-poor' : location.humidity > 50 ? 'aqi-fair' : 'aqi-good';
+                status = location.humidity > 80 ? 'Very High' : location.humidity > 70 ? 'High' : location.humidity > 50 ? 'Moderate' : 'Low';
+                statusClass = location.humidity > 80 ? 'aqi-very-poor' : location.humidity > 70 ? 'aqi-poor' : location.humidity > 50 ? 'aqi-fair' : 'aqi-good';
                 break;
         }
 
@@ -613,7 +715,15 @@ function updateLocationComparison(locations, metric) {
 // Weekly Forecast
 async function loadWeeklyForecast() {
     const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const icons = ['fas fa-sun', 'fas fa-cloud-sun', 'fas fa-cloud', 'fas fa-cloud-rain', 'fas fa-sun', 'fas fa-cloud-sun', 'fas fa-cloud'];
+    const weatherConditions = [
+        { icon: 'fas fa-sun', condition: 'sunny' },
+        { icon: 'fas fa-cloud-sun', condition: 'partly-cloudy' },
+        { icon: 'fas fa-cloud', condition: 'cloudy' },
+        { icon: 'fas fa-cloud-rain', condition: 'rainy' },
+        { icon: 'fas fa-sun', condition: 'sunny' },
+        { icon: 'fas fa-cloud-sun', condition: 'partly-cloudy' },
+        { icon: 'fas fa-cloud', condition: 'cloudy' }
+    ];
     
     const forecastGrid = document.getElementById('weeklyForecast');
     if (!forecastGrid) return;
@@ -621,9 +731,16 @@ async function loadWeeklyForecast() {
     forecastGrid.innerHTML = '';
 
     days.forEach((day, index) => {
-        const high = Math.round(25 + Math.random() * 10);
-        const low = Math.round(high - 8 - Math.random() * 4);
-        const aqi = Math.floor(Math.random() * 3) + 2;
+        // More realistic temperature variations
+        const baseTemp = 26;
+        const tempVariation = Math.sin(index * 0.5) * 4 + (Math.random() - 0.5) * 3;
+        const high = Math.round(baseTemp + tempVariation + 3);
+        const low = Math.round(high - 6 - Math.random() * 4);
+        
+        // AQI tends to be worse on certain days (weekends better due to less traffic)
+        const isWeekend = index === 5 || index === 6;
+        const baseAqi = isWeekend ? 2 : 3;
+        const aqi = Math.max(1, Math.min(5, baseAqi + Math.floor(Math.random() * 2)));
         
         const aqiLevels = {
             1: { level: 'Good', class: 'aqi-good' },
@@ -638,7 +755,7 @@ async function loadWeeklyForecast() {
         dayElement.innerHTML = `
             <div class="forecast-date">${day}</div>
             <div class="forecast-icon">
-                <i class="${icons[index]}"></i>
+                <i class="${weatherConditions[index].icon}"></i>
             </div>
             <div class="forecast-temps">
                 <span class="forecast-high">${high}°</span>
@@ -1026,12 +1143,36 @@ function showSuccessToast(message) {
     }, 3000);
 }
 
+// Start update countdown
+function startUpdateCountdown() {
+    updateCountdown = setInterval(() => {
+        nextUpdateTime--;
+        
+        const minutes = Math.floor(nextUpdateTime / 60);
+        const seconds = nextUpdateTime % 60;
+        
+        const nextUpdateElement = document.getElementById('nextUpdate');
+        if (nextUpdateElement) {
+            if (minutes > 0) {
+                nextUpdateElement.textContent = `${minutes}m ${seconds}s`;
+            } else {
+                nextUpdateElement.textContent = `${seconds}s`;
+            }
+        }
+        
+        if (nextUpdateTime <= 0) {
+            nextUpdateTime = 600; // Reset to 10 minutes
+        }
+    }, 1000);
+}
+
 // Auto-refresh functionality
 function startAutoRefresh() {
     // Refresh data every 10 minutes
     refreshInterval = setInterval(() => {
         console.log('🔄 Auto-refreshing data...');
         loadInitialData();
+        nextUpdateTime = 600; // Reset countdown
     }, 10 * 60 * 1000);
 }
 
@@ -1040,6 +1181,39 @@ window.addEventListener('beforeunload', () => {
     if (refreshInterval) {
         clearInterval(refreshInterval);
     }
+    if (updateCountdown) {
+        clearInterval(updateCountdown);
+    }
+});
+
+// Add some interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click handlers for feature cards
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const title = this.querySelector('.feature-title').textContent;
+            showSuccessToast(`${title} feature coming soon!`);
+        });
+    });
+    
+    // Add click handlers for stats
+    document.querySelectorAll('.stat-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const label = this.querySelector('.stat-label').textContent;
+            showSuccessToast(`${label} details will be available in the next update!`);
+        });
+    });
+    
+    // Add hover effects for summary items
+    document.querySelectorAll('.summary-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.05)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
 });
 
 // Export for debugging
