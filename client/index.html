@@ -3,269 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bengaluru Air Quality & Weather Monitor</title>
+  <title>Bengaluru Air Quality Monitor</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="app">
-    <!-- Header -->
+    <!-- Clean Header -->
     <header class="header">
-      <div class="header-content">
-        <div class="location">
-          <i class="fas fa-map-marker-alt"></i>
-          <span id="currentLocation">Bengaluru, Karnataka</span>
+      <div class="container">
+        <div class="header-left">
+          <div class="location-info">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="currentLocation">Bengaluru, Karnataka</span>
+          </div>
         </div>
-        <div class="last-updated">
-          <i class="fas fa-clock"></i>
-          <span id="lastUpdated">Loading...</span>
+        <div class="header-center">
+          <h1 class="app-title">Air Quality Monitor</h1>
         </div>
-        <div class="location-selector">
-          <select id="locationSelect" class="location-dropdown">
-            <option value="central">Central Bengaluru</option>
-            <option value="whitefield">Whitefield</option>
-            <option value="koramangala">Koramangala</option>
-            <option value="indiranagar">Indiranagar</option>
-            <option value="electronic-city">Electronic City</option>
-            <option value="hebbal">Hebbal</option>
-            <option value="jayanagar">Jayanagar</option>
-            <option value="marathahalli">Marathahalli</option>
-          </select>
+        <div class="header-right">
+          <div class="last-updated">
+            <i class="fas fa-clock"></i>
+            <span id="lastUpdated">Loading...</span>
+          </div>
+          <button id="refreshBtn" class="refresh-btn">
+            <i class="fas fa-sync-alt"></i>
+          </button>
         </div>
       </div>
     </header>
 
-    <!-- New Features Section -->
-    <section class="features-section" id="featuresSection">
-      <div class="feature-card">
-        <div class="feature-header">
-          <div class="feature-icon">
-            <i class="fas fa-brain"></i>
-          </div>
-          <div class="feature-title">AI Predictions</div>
-        </div>
-        <div class="feature-content">
-          <p>Advanced machine learning algorithms predict air quality trends up to 48 hours in advance, helping you plan your activities better.</p>
-        </div>
-      </div>
-      
-      <div class="feature-card">
-        <div class="feature-header">
-          <div class="feature-icon">
-            <i class="fas fa-bell"></i>
-          </div>
-          <div class="feature-title">Smart Alerts</div>
-        </div>
-        <div class="feature-content">
-          <p>Personalized notifications based on your health profile and activity preferences. Get alerts before air quality deteriorates.</p>
-        </div>
-      </div>
-      
-      <div class="feature-card">
-        <div class="feature-header">
-          <div class="feature-icon">
-            <i class="fas fa-route"></i>
-          </div>
-          <div class="feature-title">Route Optimizer</div>
-        </div>
-        <div class="feature-content">
-          <p>Find the cleanest routes for your daily commute. Our system analyzes real-time air quality data across the city.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- AQI Scale Reference -->
-    <section class="aqi-scale">
-      <h3><i class="fas fa-info-circle"></i> Air Quality Index Scale</h3>
-      <div class="scale-items">
-        <div class="scale-item">
-          <div class="scale-color aqi-good"></div>
-          <div class="scale-info">
-            <div class="scale-level">Good (0-50)</div>
-            <div class="scale-range">Air quality is satisfactory</div>
-          </div>
-        </div>
-        <div class="scale-item">
-          <div class="scale-color aqi-fair"></div>
-          <div class="scale-info">
-            <div class="scale-level">Moderate (51-100)</div>
-            <div class="scale-range">Acceptable for most people</div>
-          </div>
-        </div>
-        <div class="scale-item">
-          <div class="scale-color aqi-moderate"></div>
-          <div class="scale-info">
-            <div class="scale-level">Unhealthy for Sensitive (101-150)</div>
-            <div class="scale-range">Sensitive groups may experience symptoms</div>
-          </div>
-        </div>
-        <div class="scale-item">
-          <div class="scale-color aqi-poor"></div>
-          <div class="scale-info">
-            <div class="scale-level">Unhealthy (151-200)</div>
-            <div class="scale-range">Everyone may experience health effects</div>
-          </div>
-        </div>
-        <div class="scale-item">
-          <div class="scale-color aqi-very-poor"></div>
-          <div class="scale-info">
-            <div class="scale-level">Very Unhealthy (201-300)</div>
-            <div class="scale-range">Health alert for everyone</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Main Dashboard -->
     <main class="dashboard">
-      <!-- Current Conditions -->
-      <section class="current-conditions">
-        <!-- Weather Summary Card -->
-        <div class="weather-summary-card">
-          <div class="summary-header">
-            <h2><i class="fas fa-cloud-sun"></i> Today's Overview</h2>
-            <div class="weather-trend" id="weatherTrend">
-              <i class="fas fa-arrow-up trend-icon"></i>
-              <span>Improving</span>
-            </div>
-          </div>
-          <div class="summary-grid">
-            <div class="summary-item">
-              <div class="summary-label">Air Quality</div>
-              <div class="summary-value" id="summaryAqi">Good</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-label">Temperature</div>
-              <div class="summary-value" id="summaryTemp">25°C</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-label">Humidity</div>
-              <div class="summary-value" id="summaryHumidity">65%</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-label">UV Index</div>
-              <div class="summary-value" id="summaryUV">Moderate</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="weather-card">
-          <div class="weather-header">
-            <h2>Current Weather</h2>
-            <div class="weather-actions">
-              <button id="shareBtn" class="action-btn" title="Share Weather">
-                <i class="fas fa-share-alt"></i>
-              </button>
-              <button id="refreshBtn" class="refresh-btn">
-                <i class="fas fa-sync-alt"></i>
-              </button>
-            </div>
-          </div>
-          <div class="weather-content">
-            <div class="temperature">
-              <span id="temperature">--°</span>
-              <div class="weather-details">
-                <div id="weatherDescription">Loading...</div>
-                <div class="feels-like">Feels like <span id="feelsLike">--°</span></div>
+      <div class="container">
+        <!-- Current Status Cards -->
+        <section class="status-grid">
+          <!-- Weather Card -->
+          <div class="status-card weather-card">
+            <div class="card-header">
+              <h2>Current Weather</h2>
+              <div class="weather-icon">
+                <i id="weatherIcon" class="fas fa-sun"></i>
               </div>
             </div>
-            <div class="weather-icon">
-              <i id="weatherIcon" class="fas fa-sun"></i>
+            <div class="weather-main">
+              <div class="temperature">
+                <span id="temperature">--°</span>
+                <div class="temp-details">
+                  <div id="weatherDescription">Loading...</div>
+                  <div class="feels-like">Feels like <span id="feelsLike">--°</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="weather-stats">
+              <div class="stat-item">
+                <i class="fas fa-tint"></i>
+                <div>
+                  <span class="stat-label">Humidity</span>
+                  <span class="stat-value" id="humidity">--%</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-wind"></i>
+                <div>
+                  <span class="stat-label">Wind</span>
+                  <span class="stat-value" id="windSpeed">-- km/h</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-thermometer-half"></i>
+                <div>
+                  <span class="stat-label">Pressure</span>
+                  <span class="stat-value" id="pressure">-- hPa</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-eye"></i>
+                <div>
+                  <span class="stat-label">Visibility</span>
+                  <span class="stat-value" id="visibility">-- km</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="weather-stats">
-            <div class="stat">
-              <i class="fas fa-tint"></i>
-              <span>Humidity</span>
-              <span id="humidity">--%</span>
-            </div>
-            <div class="stat">
-              <i class="fas fa-wind"></i>
-              <span>Wind</span>
-              <span id="windSpeed">-- km/h</span>
-            </div>
-            <div class="stat">
-              <i class="fas fa-eye"></i>
-              <span>Visibility</span>
-              <span id="visibility">-- km</span>
-            </div>
-            <div class="stat">
-              <i class="fas fa-thermometer-half"></i>
-              <span>Pressure</span>
-              <span id="pressure">-- hPa</span>
-            </div>
-            <div class="stat">
-              <i class="fas fa-sun"></i>
-              <span>UV Index</span>
-              <span id="uvIndex">--</span>
-            </div>
-            <div class="stat">
-              <i class="fas fa-thermometer-quarter"></i>
-              <span>Dew Point</span>
-              <span id="dewPoint">--°C</span>
-            </div>
-          </div>
-        </div>
 
-        <div class="aqi-card">
-          <div class="aqi-header">
-            <h2>Air Quality Index</h2>
-            <div class="aqi-info">
+          <!-- Air Quality Card -->
+          <div class="status-card aqi-card">
+            <div class="card-header">
+              <h2>Air Quality Index</h2>
               <div class="aqi-badge" id="aqiBadge">
                 <span id="aqiValue">--</span>
                 <span id="aqiLevel">Loading</span>
               </div>
-              <div class="aqi-comparison">
-                <div class="comparison-item">
-                  <span class="comparison-label">Yesterday</span>
-                  <span class="comparison-value" id="aqiYesterday">--</span>
+            </div>
+            <div class="aqi-details">
+              <div class="pollutant-item">
+                <div class="pollutant-info">
+                  <span class="pollutant-name">PM2.5</span>
+                  <span class="pollutant-value" id="pm25">-- μg/m³</span>
                 </div>
-                <div class="comparison-item">
-                  <span class="comparison-label">Last Week</span>
-                  <span class="comparison-value" id="aqiLastWeek">--</span>
+                <div class="pollutant-bar">
+                  <div class="bar-fill" id="pm25Bar"></div>
+                </div>
+              </div>
+              <div class="pollutant-item">
+                <div class="pollutant-info">
+                  <span class="pollutant-name">PM10</span>
+                  <span class="pollutant-value" id="pm10">-- μg/m³</span>
+                </div>
+                <div class="pollutant-bar">
+                  <div class="bar-fill" id="pm10Bar"></div>
+                </div>
+              </div>
+              <div class="pollutant-item">
+                <div class="pollutant-info">
+                  <span class="pollutant-name">NO₂</span>
+                  <span class="pollutant-value" id="no2">-- μg/m³</span>
+                </div>
+                <div class="pollutant-bar">
+                  <div class="bar-fill" id="no2Bar"></div>
+                </div>
+              </div>
+              <div class="pollutant-item">
+                <div class="pollutant-info">
+                  <span class="pollutant-name">O₃</span>
+                  <span class="pollutant-value" id="o3">-- μg/m³</span>
+                </div>
+                <div class="pollutant-bar">
+                  <div class="bar-fill" id="o3Bar"></div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="aqi-details">
-            <div class="pollutant">
-              <span class="label">PM2.5</span>
-              <span class="value" id="pm25">-- μg/m³</span>
-              <div class="bar">
-                <div class="fill" id="pm25Bar"></div>
-              </div>
-            </div>
-            <div class="pollutant">
-              <span class="label">PM10</span>
-              <span class="value" id="pm10">-- μg/m³</span>
-              <div class="bar">
-                <div class="fill" id="pm10Bar"></div>
-              </div>
-            </div>
-            <div class="pollutant">
-              <span class="label">NO₂</span>
-              <span class="value" id="no2">-- μg/m³</span>
-              <div class="bar">
-                <div class="fill" id="no2Bar"></div>
-              </div>
-            </div>
-            <div class="pollutant">
-              <span class="label">O₃</span>
-              <span class="value" id="o3">-- μg/m³</span>
-              <div class="bar">
-                <div class="fill" id="o3Bar"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- Location Comparison -->
-      <section class="location-comparison">
-        <div class="comparison-card">
-          <div class="comparison-header">
-            <h3><i class="fas fa-map-marked-alt"></i> Bengaluru Areas Comparison</h3>
+          <!-- Health Recommendations Card -->
+          <div class="status-card health-card">
+            <div class="card-header">
+              <h2>Health Recommendations</h2>
+              <i class="fas fa-heartbeat"></i>
+            </div>
+            <div id="healthAdvice" class="health-content">
+              <p>Loading health recommendations...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Air Quality Trends</h3>
+              <div class="chart-controls">
+                <button class="chart-btn active" data-period="24h">24H</button>
+                <button class="chart-btn" data-period="7d">7D</button>
+                <button class="chart-btn" data-period="30d">30D</button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="aqiChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Weather Trends</h3>
+              <div class="chart-controls">
+                <button class="chart-btn active" data-period="24h">24H</button>
+                <button class="chart-btn" data-period="7d">7D</button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="weatherChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Location Comparison -->
+        <section class="comparison-section">
+          <div class="section-header">
+            <h2>Bengaluru Areas Comparison</h2>
             <div class="comparison-controls">
               <button class="comparison-btn active" data-metric="aqi">AQI</button>
               <button class="comparison-btn" data-metric="temp">Temperature</button>
@@ -275,123 +192,28 @@
           <div class="comparison-grid" id="comparisonGrid">
             <!-- Dynamic content will be inserted here -->
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Charts Section -->
-      <section class="charts-section">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3>Air Quality Trends (24 Hours)</h3>
-            <div class="chart-controls">
-              <button class="chart-btn active" data-period="24h">24H</button>
-              <button class="chart-btn" data-period="7d">7D</button>
-              <button class="chart-btn" data-period="30d">30D</button>
-            </div>
+        <!-- Weekly Forecast -->
+        <section class="forecast-section">
+          <div class="section-header">
+            <h2>7-Day Forecast</h2>
           </div>
-          <canvas id="aqiChart"></canvas>
-        </div>
-
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3>Weather Trends (24 Hours)</h3>
-            <div class="chart-controls">
-              <button class="chart-btn active" data-period="24h">24H</button>
-              <button class="chart-btn" data-period="7d">7D</button>
-            </div>
-          </div>
-          <canvas id="weatherChart"></canvas>
-        </div>
-
-        <!-- New Hourly Forecast Chart -->
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3>24-Hour Forecast</h3>
-            <div class="forecast-toggle">
-              <button class="chart-btn active" data-forecast="temp">Temperature</button>
-              <button class="chart-btn" data-forecast="aqi">Air Quality</button>
-            </div>
-          </div>
-          <canvas id="forecastChart"></canvas>
-        </div>
-
-        <!-- Air Quality Breakdown -->
-        <div class="chart-container">
-          <div class="chart-header">
-            <h3>Pollutant Breakdown</h3>
-            <div class="breakdown-info">
-              <i class="fas fa-info-circle" title="WHO Air Quality Guidelines"></i>
-            </div>
-          </div>
-          <canvas id="pollutantChart"></canvas>
-        </div>
-      </section>
-
-      <!-- Weekly Forecast -->
-      <section class="weekly-forecast">
-        <div class="forecast-card">
-          <h3><i class="fas fa-calendar-week"></i> 7-Day Forecast</h3>
           <div class="forecast-grid" id="weeklyForecast">
             <!-- Dynamic content will be inserted here -->
           </div>
-        </div>
-      </section>
-
-      <!-- Health Recommendations -->
-      <section class="recommendations">
-        <div class="recommendation-card">
-          <h3><i class="fas fa-heartbeat"></i> Health Recommendations</h3>
-          <div id="healthAdvice" class="advice-content">
-            <p>Loading health recommendations...</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Air Quality Alerts -->
-      <section class="alerts-section" id="alertsSection" style="display: none;">
-        <div class="alert-card">
-          <div class="alert-header">
-            <h3><i class="fas fa-exclamation-triangle"></i> Air Quality Alerts</h3>
-            <button id="dismissAlerts" class="dismiss-btn">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <div class="alert-content" id="alertContent">
-            <!-- Dynamic alerts will be inserted here -->
-          </div>
-        </div>
-      </section>
-
-      <!-- Statistics -->
-      <div class="stats-footer" id="statsFooter">
-        <div class="stat-item">
-          <span class="stat-number" id="totalReadings">1,247</span>
-          <div class="stat-label">Total Readings</div>
-          <div class="stat-description">Data points collected today</div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number" id="avgAqi">2.3</span>
-          <div class="stat-label">Average AQI</div>
-          <div class="stat-description">Last 24 hours</div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number" id="trendDirection">↗️</span>
-          <div class="stat-label">Trend</div>
-          <div class="stat-description">Improving conditions</div>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number" id="nextUpdate">8m</span>
-          <div class="stat-label">Next Update</div>
-          <div class="stat-description">Auto-refresh countdown</div>
-        </div>
+        </section>
       </div>
     </main>
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
-      <div class="spinner"></div>
+      <div class="loading-spinner"></div>
       <p>Loading data...</p>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
