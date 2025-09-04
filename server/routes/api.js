@@ -40,18 +40,31 @@ router.get('/air-quality', async (req, res) => {
     const info = data.list[0].components;
     const aqi = data.list[0].main.aqi;
 
-    // Convert WHO AQI (1-5) to US AQI equivalent for better understanding
-    const convertToUSAQI = (whoAqi, pm25) => {
-      if (whoAqi === 1) return Math.min(50, Math.max(0, pm25 * 2));
-      if (whoAqi === 2) return Math.min(100, Math.max(51, 50 + pm25 * 1.5));
-      if (whoAqi === 3) return Math.min(150, Math.max(101, 100 + pm25 * 1.2));
-      if (whoAqi === 4) return Math.min(200, Math.max(151, 150 + pm25 * 1));
-      return Math.min(300, Math.max(201, 200 + pm25 * 0.8));
+    // Enhanced AQI conversion with Indian standards
+    const convertToIndianAQI = (whoAqi, pm25, pm10) => {
+      // Indian AQI calculation based on CPCB standards
+      let indianAqi = 0;
+      
+      // PM2.5 based calculation
+      if (pm25 <= 30) indianAqi = Math.max(indianAqi, (pm25 / 30) * 50);
+      else if (pm25 <= 60) indianAqi = Math.max(indianAqi, 50 + ((pm25 - 30) / 30) * 50);
+      else if (pm25 <= 90) indianAqi = Math.max(indianAqi, 100 + ((pm25 - 60) / 30) * 100);
+      else if (pm25 <= 120) indianAqi = Math.max(indianAqi, 200 + ((pm25 - 90) / 30) * 100);
+      else indianAqi = Math.max(indianAqi, 300 + ((pm25 - 120) / 30) * 200);
+      
+      // PM10 based calculation
+      if (pm10 <= 50) indianAqi = Math.max(indianAqi, (pm10 / 50) * 50);
+      else if (pm10 <= 100) indianAqi = Math.max(indianAqi, 50 + ((pm10 - 50) / 50) * 50);
+      else if (pm10 <= 250) indianAqi = Math.max(indianAqi, 100 + ((pm10 - 100) / 150) * 100);
+      else if (pm10 <= 350) indianAqi = Math.max(indianAqi, 200 + ((pm10 - 250) / 100) * 100);
+      else indianAqi = Math.max(indianAqi, 300 + ((pm10 - 350) / 80) * 200);
+      
+      return Math.min(500, Math.round(indianAqi));
     };
 
     res.json({
       aqi,
-      aqi_us: Math.round(convertToUSAQI(aqi, info.pm2_5 || 0)),
+      aqi_indian: convertToIndianAQI(aqi, info.pm2_5 || 0, info.pm10 || 0),
       pm2_5: Math.round((info.pm2_5 || 0) * 100) / 100,
       pm10: Math.round((info.pm10 || 0) * 100) / 100,
       no2: Math.round((info.no2 || 0) * 100) / 100,
@@ -60,6 +73,7 @@ router.get('/air-quality', async (req, res) => {
       so2: Math.round((info.so2 || 0) * 100) / 100,
       nh3: Math.round((info.nh3 || 0) * 100) / 100,
       dominant_pollutant: getDominantPollutant(info),
+      health_index: calculateHealthIndex(info, aqi),
       timestamp: new Date().toISOString()
     });
   } catch (err) {
@@ -95,6 +109,20 @@ function getDominantPollutant(components) {
   return maxPollutant;
 }
 
+// Enhanced health index calculation
+function calculateHealthIndex(components, aqi) {
+  const pm25Score = Math.max(0, 100 - (components.pm2_5 / 15) * 100);
+  const pm10Score = Math.max(0, 100 - (components.pm10 / 45) * 100);
+  const no2Score = Math.max(0, 100 - (components.no2 / 25) * 100);
+  const o3Score = Math.max(0, 100 - (components.o3 / 100) * 100);
+  const aqiScore = Math.max(0, 100 - (aqi - 1) * 20);
+  
+  // Weighted average with PM2.5 having highest impact
+  const healthIndex = (pm25Score * 0.35 + pm10Score * 0.2 + no2Score * 0.15 + o3Score * 0.15 + aqiScore * 0.15);
+  
+  return Math.round(healthIndex);
+}
+
 // Weather endpoint
 router.get('/weather', async (req, res) => {
   try {
@@ -120,39 +148,71 @@ router.get('/weather', async (req, res) => {
 
     // Calculate additional weather metrics
     const calculateHeatIndex = (temp, humidity) => {
-      if (temp < 27) return temp;
-      const hi = -8.78469475556 + 1.61139411 * temp + 2.33854883889 * humidity 
-                 - 0.14611605 * temp * humidity - 0.012308094 * temp * temp
-                 - 0.0164248277778 * humidity * humidity + 0.002211732 * temp * temp * humidity
-                 + 0.00072546 * temp * humidity * humidity - 0.000003582 * temp * temp * humidity * humidity;
+      // Enhanced heat index calculation for tropical climate
+      if (temp < 26) return temp;
+      
+      const c1 = -8.78469475556;
+      const c2 = 1.61139411;
+      const c3 = 2.33854883889;
+      const c4 = -0.14611605;
+      const c5 = -0.012308094;
+      const c6 = -0.0164248277778;
+      const c7 = 0.002211732;
+      const c8 = 0.00072546;
+      const c9 = -0.000003582;
+      
+      const hi = c1 + c2 * temp + c3 * humidity + c4 * temp * humidity + 
+                 c5 * temp * temp + c6 * humidity * humidity + 
+                 c7 * temp * temp * humidity + c8 * temp * humidity * humidity + 
+                 c9 * temp * temp * humidity * humidity;
+                 
       return Math.round(hi * 10) / 10;
     };
 
     const calculateWindChill = (temp, windSpeed) => {
-      if (temp > 10 || windSpeed < 4.8) return temp;
-      const wc = 13.12 + 0.6215 * temp - 11.37 * Math.pow(windSpeed, 0.16) + 0.3965 * temp * Math.pow(windSpeed, 0.16);
+      // Adjusted for Bengaluru's tropical climate
+      if (temp > 15 || windSpeed < 5) return temp;
+      const wc = 13.12 + 0.6215 * temp - 11.37 * Math.pow(windSpeed, 0.16) + 
+                 0.3965 * temp * Math.pow(windSpeed, 0.16);
       return Math.round(wc * 10) / 10;
     };
+    
+    // Calculate UV Index based on time and weather
+    const calculateUVIndex = (clouds, hour) => {
+      if (hour < 6 || hour > 18) return 0;
+      const solarAngle = Math.sin((hour - 6) * Math.PI / 12);
+      const cloudFactor = (100 - clouds) / 100;
+      const baseUV = solarAngle * 11; // Max UV for Bengaluru latitude
+      return Math.round(Math.max(0, Math.min(11, baseUV * cloudFactor)));
+    };
+    
+    const currentHour = new Date().getHours();
+    
     res.json({
       temperature: Math.round(data.main.temp * 10) / 10,
       feels_like: Math.round(data.main.feels_like * 10) / 10,
       heat_index: calculateHeatIndex(data.main.temp, data.main.humidity),
       wind_chill: calculateWindChill(data.main.temp, (data.wind?.speed || 0) * 3.6),
+      uv_index: calculateUVIndex(data.clouds.all, currentHour),
       humidity: data.main.humidity,
       pressure: data.main.pressure,
+      sea_level_pressure: data.main.sea_level || data.main.pressure,
       description: data.weather[0].description,
       icon: data.weather[0].icon,
       weather_id: data.weather[0].id,
       wind_speed: Math.round((data.wind?.speed || 0) * 10) / 10,
       wind_direction: data.wind?.deg || 0,
+      wind_direction_text: getWindDirectionText(data.wind?.deg || 0),
       wind_gust: Math.round(((data.wind?.gust || data.wind?.speed || 0) * 1.2) * 10) / 10,
       visibility: Math.round((data.visibility || 10000) / 1000),
       clouds: data.clouds.all,
+      cloud_description: getCloudDescription(data.clouds.all),
       rain_1h: data.rain?.['1h'] || 0,
       snow_1h: data.snow?.['1h'] || 0,
       sunrise: data.sys.sunrise,
       sunset: data.sys.sunset,
       timezone: data.timezone,
+      air_quality_impact: getAirQualityImpact(data.wind?.speed || 0, data.clouds.all),
       timestamp: new Date().toISOString()
     });
   } catch (err) {
@@ -163,6 +223,34 @@ router.get('/weather', async (req, res) => {
     });
   }
 });
+
+// Helper function for wind direction
+function getWindDirectionText(degrees) {
+  const directions = [
+    'North', 'North-Northeast', 'Northeast', 'East-Northeast',
+    'East', 'East-Southeast', 'Southeast', 'South-Southeast',
+    'South', 'South-Southwest', 'Southwest', 'West-Southwest',
+    'West', 'West-Northwest', 'Northwest', 'North-Northwest'
+  ];
+  const index = Math.round(degrees / 22.5) % 16;
+  return directions[index];
+}
+
+// Helper function for cloud description
+function getCloudDescription(cloudiness) {
+  if (cloudiness <= 10) return 'Clear skies';
+  if (cloudiness <= 25) return 'Few clouds';
+  if (cloudiness <= 50) return 'Scattered clouds';
+  if (cloudiness <= 75) return 'Broken clouds';
+  return 'Overcast';
+}
+
+// Helper function for air quality impact
+function getAirQualityImpact(windSpeed, clouds) {
+  const windFactor = windSpeed > 3 ? 'Good dispersion' : 'Poor dispersion';
+  const cloudFactor = clouds > 70 ? 'Limited UV, stable conditions' : 'Clear conditions, good mixing';
+  return `${windFactor}, ${cloudFactor}`;
+}
 
 // Historical data endpoint (enhanced mock data)
 router.get('/historical/:type', async (req, res) => {
@@ -211,71 +299,112 @@ function generateMockHistoricalData(type, period) {
       // Generate more realistic AQI data with daily patterns
       const hour = timestamp.getHours();
       const dayOfWeek = timestamp.getDay();
+      const month = timestamp.getMonth();
       
-      // Traffic patterns: higher AQI during rush hours and weekdays
+      // Enhanced traffic patterns for Bengaluru
       let trafficFactor = 1;
       if ((hour >= 7 && hour <= 10) || (hour >= 17 && hour <= 20)) {
-        trafficFactor = 1.5; // Rush hours
+        trafficFactor = 1.8; // Heavy rush hours in Bengaluru
       }
       if (dayOfWeek === 0 || dayOfWeek === 6) {
-        trafficFactor *= 0.7; // Weekends
+        trafficFactor *= 0.6; // Significant weekend reduction
       }
       
-      // Weather influence: higher AQI in early morning (inversion layer)
-      const weatherFactor = hour >= 5 && hour <= 8 ? 1.3 : 1;
+      // Seasonal factors for Bengaluru
+      let seasonalFactor = 1;
+      if ([11, 0, 1, 2].includes(month)) seasonalFactor = 1.4; // Winter pollution
+      if ([5, 6, 7, 8, 9].includes(month)) seasonalFactor = 0.7; // Monsoon cleaning
       
-      const baseAqi = 2.2 + Math.sin(i * 0.05) * 0.8 * trafficFactor * weatherFactor;
-      const noise = (Math.random() - 0.5) * 0.6;
+      // Weather influence: temperature inversion in early morning
+      const weatherFactor = hour >= 5 && hour <= 8 ? 1.4 : 
+                           hour >= 22 || hour <= 4 ? 1.2 : 1;
+      
+      const baseAqi = 2.8 + Math.sin(i * 0.05) * 0.8 * trafficFactor * weatherFactor * seasonalFactor;
+      const noise = (Math.random() - 0.5) * 0.4;
       const aqi = Math.max(1, Math.min(5, Math.round(baseAqi + noise)));
       
-      // PM2.5 correlates with AQI but has its own patterns
-      const basePm25 = 12 + (aqi - 1) * 8 + Math.sin(i * 0.03) * 6 + (Math.random() - 0.5) * 5;
+      // More realistic PM2.5 for Bengaluru (typically 20-40 μg/m³)
+      const basePm25 = 18 + (aqi - 1) * 12 + Math.sin(i * 0.03) * 8 + (Math.random() - 0.5) * 6;
       const pm25 = Math.max(0, Math.round(basePm25 * 100) / 100);
+      
+      // PM10 typically 1.5-2x PM2.5 in urban areas
+      const pm10 = Math.round(pm25 * (1.6 + Math.random() * 0.6) * 100) / 100;
+      
+      // NO2 higher during traffic hours
+      const no2Base = 15 + trafficFactor * 20 + (Math.random() - 0.5) * 8;
+      const no2 = Math.max(0, Math.round(no2Base * 100) / 100);
+      
+      // O3 peaks during afternoon due to photochemical reactions
+      const o3Base = 45 + Math.sin((hour - 12) * Math.PI / 12) * 35 + (Math.random() - 0.5) * 15;
+      const o3 = Math.max(0, Math.round(o3Base * 100) / 100);
+      
+      // CO correlates with traffic
+      const co = Math.round((0.4 + trafficFactor * 1.2 + (Math.random() - 0.5) * 0.3) * 100) / 100;
       
       data.push({
         timestamp: timestamp.toISOString(),
         aqi,
-        aqi_us: Math.min(300, Math.max(0, Math.round(pm25 * 3.5 + (aqi - 1) * 25))),
+        aqi_indian: convertToIndianAQI(aqi, pm25, pm10),
         pm25,
-        pm10: Math.round(pm25 * (1.3 + Math.random() * 0.4) * 100) / 100,
-        no2: Math.round((8 + trafficFactor * 15 + Math.random() * 12) * 100) / 100,
-        o3: Math.round((40 + Math.sin(hour * 0.3) * 30 + Math.random() * 20) * 100) / 100,
-        co: Math.round((0.5 + trafficFactor * 0.8 + Math.random() * 0.4) * 100) / 100
+        pm10,
+        no2,
+        o3,
+        co,
+        health_index: calculateHealthIndex(components, aqi)
       });
     } else if (type === 'weather') {
-      // Generate more realistic weather data with daily cycles
+      // Enhanced weather data for Bengaluru's climate
       const hour = timestamp.getHours();
       const dayOfYear = Math.floor((timestamp - new Date(timestamp.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+      const month = timestamp.getMonth();
       
-      // Seasonal temperature variation
-      const seasonalTemp = 26 + Math.sin((dayOfYear - 80) * 2 * Math.PI / 365) * 4;
+      // Bengaluru's seasonal temperature pattern
+      const seasonalTemp = 25.5 + Math.sin((dayOfYear - 60) * 2 * Math.PI / 365) * 3.5;
       
-      // Daily temperature cycle
-      const dailyTemp = seasonalTemp + Math.sin((hour - 6) * Math.PI / 12) * 6;
+      // Enhanced daily temperature cycle
+      const dailyTemp = seasonalTemp + Math.sin((hour - 6) * Math.PI / 12) * 5.5;
       
-      const temperature = Math.round((baseTemp + (Math.random() - 0.5) * 4) * 10) / 10;
+      const temperature = Math.round((dailyTemp + (Math.random() - 0.5) * 2.5) * 10) / 10;
       
-      // Humidity inversely related to temperature
-      const baseHumidity = 75 - (dailyTemp - 20) * 1.5 + Math.sin(i * 0.04) * 15;
-      const humidity = Math.max(20, Math.min(95, Math.round(baseHumidity + (Math.random() - 0.5) * 10)));
+      // Realistic humidity for Bengaluru (higher during monsoon)
+      const isMonsoon = [5, 6, 7, 8, 9].includes(month);
+      const baseHumidity = isMonsoon ? 85 : 65;
+      const humidityVariation = 78 - (dailyTemp - 22) * 1.8 + Math.sin(i * 0.04) * 12;
+      const humidity = Math.max(30, Math.min(95, Math.round(humidityVariation + (Math.random() - 0.5) * 8)));
       
-      // Pressure with realistic variations
-      const basePressure = 1013 + Math.sin(i * 0.01) * 8 + Math.sin(dayOfYear * 0.02) * 5;
-      const pressure = Math.round(basePressure + (Math.random() - 0.5) * 8);
+      // Pressure adjusted for Bengaluru's elevation (920m)
+      const elevationPressure = 1013 - (920 * 0.12); // ~903 hPa at 920m
+      const basePressure = elevationPressure + Math.sin(i * 0.01) * 6 + Math.sin(dayOfYear * 0.02) * 4;
+      const pressure = Math.round(basePressure + (Math.random() - 0.5) * 5);
       
-      // Wind speed with daily patterns
-      const baseWind = 3 + Math.sin(hour * 0.2) * 2 + Math.random() * 3;
+      // Enhanced wind patterns for Bengaluru
+      const baseWind = 2.5 + Math.sin(hour * 0.3) * 2.5 + (isMonsoon ? 4 : 1) + Math.random() * 2;
       const windSpeed = Math.max(0, Math.round(baseWind * 10) / 10);
+      
+      // Cloud cover with seasonal variations
+      const seasonalClouds = isMonsoon ? 75 : 35;
+      const clouds = Math.max(0, Math.min(100, 
+        Math.round(seasonalClouds + Math.sin(i * 0.1) * 25 + (Math.random() - 0.5) * 20)));
+      
+      // Visibility affected by pollution and weather
+      const baseVisibility = isMonsoon ? 12 : 8;
+      const visibility = Math.max(2, Math.min(15, 
+        Math.round(baseVisibility + (Math.random() - 0.5) * 3)));
       
       data.push({
         timestamp: timestamp.toISOString(),
-        temperature: Math.round(dailyTemp * 10) / 10,
-        feels_like: Math.round((dailyTemp + (humidity > 70 ? 2 : 0)) * 10) / 10,
+        temperature,
+        feels_like: Math.round((temperature + (humidity > 70 ? 2.5 : 0)) * 10) / 10,
+        heat_index: calculateHeatIndex(temperature, humidity),
         humidity,
         pressure,
+        sea_level_pressure: Math.round((pressure + 110) * 10) / 10, // Approximate sea level
         wind_speed: windSpeed,
-        clouds: Math.max(0, Math.min(100, Math.round(50 + Math.sin(i * 0.1) * 30 + (Math.random() - 0.5) * 20))),
-        visibility: Math.max(1, Math.min(10, Math.round(8 + (Math.random() - 0.5) * 4)))
+        wind_direction: Math.round(Math.random() * 360),
+        clouds,
+        visibility,
+        uv_index: calculateUVIndex(clouds, currentHour),
+        dew_point: Math.round((temperature - ((100 - humidity) / 5)) * 10) / 10
       });
     }
   }
