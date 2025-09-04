@@ -3,33 +3,66 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bengaluru Air Quality Monitor</title>
+  <title>Bengaluru Air Quality & Weather Intelligence</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
 </head>
 <body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="floating-particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+  </div>
+
   <div class="app">
     <!-- Clean Header -->
     <header class="header">
       <div class="container">
         <div class="header-left">
-          <div class="location-info">
-            <i class="fas fa-map-marker-alt"></i>
-            <span id="currentLocation">Bengaluru, Karnataka</span>
+          <div class="app-logo">
+            <div class="logo-icon">
+              <i class="fas fa-leaf"></i>
+            </div>
+            <div class="logo-text">
+              <div class="logo-title">AirWatch</div>
+              <div class="logo-subtitle">Bengaluru</div>
+            </div>
           </div>
         </div>
         <div class="header-center">
-          <h1 class="app-title">Air Quality Monitor</h1>
+          <div class="location-info">
+            <i class="fas fa-map-marker-alt"></i>
+            <span id="currentLocation">Bengaluru, Karnataka</span>
+            <div class="location-status">
+              <div class="status-dot" id="connectionStatus"></div>
+              <span>Live</span>
+            </div>
+          </div>
         </div>
         <div class="header-right">
           <div class="last-updated">
             <i class="fas fa-clock"></i>
             <span id="lastUpdated">Loading...</span>
           </div>
+          <div class="header-actions">
+            <button id="alertsBtn" class="action-btn">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge" id="alertCount">0</span>
+            </button>
+            <button id="settingsBtn" class="action-btn">
+              <i class="fas fa-cog"></i>
+            </button>
           <button id="refreshBtn" class="refresh-btn">
             <i class="fas fa-sync-alt"></i>
           </button>
+          </div>
         </div>
       </div>
     </header>
@@ -37,12 +70,80 @@
     <!-- Main Dashboard -->
     <main class="dashboard">
       <div class="container">
+        <!-- Hero Section with Current Status -->
+        <section class="hero-section">
+          <div class="hero-card">
+            <div class="hero-content">
+              <div class="hero-left">
+                <div class="current-time">
+                  <div id="currentTime" class="time-display">--:--</div>
+                  <div id="currentDate" class="date-display">Loading...</div>
+                </div>
+                <div class="weather-summary">
+                  <div class="weather-main-temp">
+                    <span id="heroTemperature">--°</span>
+                    <div class="weather-condition">
+                      <i id="heroWeatherIcon" class="fas fa-sun"></i>
+                      <span id="heroWeatherDescription">Loading...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="hero-center">
+                <div class="aqi-hero">
+                  <div class="aqi-circle" id="aqiCircle">
+                    <div class="aqi-inner">
+                      <span id="heroAqiValue">--</span>
+                      <span class="aqi-label">AQI</span>
+                    </div>
+                  </div>
+                  <div class="aqi-status">
+                    <span id="heroAqiLevel">Loading</span>
+                    <div class="aqi-trend" id="aqiTrend">
+                      <i class="fas fa-arrow-up"></i>
+                      <span>+2 from yesterday</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="hero-right">
+                <div class="quick-stats">
+                  <div class="quick-stat">
+                    <i class="fas fa-wind"></i>
+                    <div>
+                      <span class="stat-value" id="heroWind">-- km/h</span>
+                      <span class="stat-label">Wind</span>
+                    </div>
+                  </div>
+                  <div class="quick-stat">
+                    <i class="fas fa-tint"></i>
+                    <div>
+                      <span class="stat-value" id="heroHumidity">--%</span>
+                      <span class="stat-label">Humidity</span>
+                    </div>
+                  </div>
+                  <div class="quick-stat">
+                    <i class="fas fa-eye"></i>
+                    <div>
+                      <span class="stat-value" id="heroVisibility">-- km</span>
+                      <span class="stat-label">Visibility</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Current Status Cards -->
         <section class="status-grid">
           <!-- Weather Card -->
           <div class="status-card weather-card">
             <div class="card-header">
-              <h2>Current Weather</h2>
+              <h2>
+                <i class="fas fa-cloud-sun card-icon"></i>
+                Weather Details
+              </h2>
               <div class="weather-icon">
                 <i id="weatherIcon" class="fas fa-sun"></i>
               </div>
@@ -85,13 +186,30 @@
                   <span class="stat-value" id="visibility">-- km</span>
                 </div>
               </div>
+              <div class="stat-item">
+                <i class="fas fa-sun"></i>
+                <div>
+                  <span class="stat-label">UV Index</span>
+                  <span class="stat-value" id="uvIndex">--</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-droplet"></i>
+                <div>
+                  <span class="stat-label">Dew Point</span>
+                  <span class="stat-value" id="dewPoint">--°C</span>
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Air Quality Card -->
           <div class="status-card aqi-card">
             <div class="card-header">
-              <h2>Air Quality Index</h2>
+              <h2>
+                <i class="fas fa-lungs card-icon"></i>
+                Air Quality Index
+              </h2>
               <div class="aqi-badge" id="aqiBadge">
                 <span id="aqiValue">--</span>
                 <span id="aqiLevel">Loading</span>
@@ -100,39 +218,55 @@
             <div class="aqi-details">
               <div class="pollutant-item">
                 <div class="pollutant-info">
-                  <span class="pollutant-name">PM2.5</span>
+                  <span class="pollutant-name">
+                    <i class="fas fa-circle pollutant-icon pm25-icon"></i>
+                    PM2.5
+                  </span>
                   <span class="pollutant-value" id="pm25">-- μg/m³</span>
                 </div>
                 <div class="pollutant-bar">
                   <div class="bar-fill" id="pm25Bar"></div>
                 </div>
+                <div class="pollutant-limit">WHO Limit: 15 μg/m³</div>
               </div>
               <div class="pollutant-item">
                 <div class="pollutant-info">
-                  <span class="pollutant-name">PM10</span>
+                  <span class="pollutant-name">
+                    <i class="fas fa-circle pollutant-icon pm10-icon"></i>
+                    PM10
+                  </span>
                   <span class="pollutant-value" id="pm10">-- μg/m³</span>
                 </div>
                 <div class="pollutant-bar">
                   <div class="bar-fill" id="pm10Bar"></div>
                 </div>
+                <div class="pollutant-limit">WHO Limit: 45 μg/m³</div>
               </div>
               <div class="pollutant-item">
                 <div class="pollutant-info">
-                  <span class="pollutant-name">NO₂</span>
+                  <span class="pollutant-name">
+                    <i class="fas fa-circle pollutant-icon no2-icon"></i>
+                    NO₂
+                  </span>
                   <span class="pollutant-value" id="no2">-- μg/m³</span>
                 </div>
                 <div class="pollutant-bar">
                   <div class="bar-fill" id="no2Bar"></div>
                 </div>
+                <div class="pollutant-limit">WHO Limit: 25 μg/m³</div>
               </div>
               <div class="pollutant-item">
                 <div class="pollutant-info">
-                  <span class="pollutant-name">O₃</span>
+                  <span class="pollutant-name">
+                    <i class="fas fa-circle pollutant-icon o3-icon"></i>
+                    O₃
+                  </span>
                   <span class="pollutant-value" id="o3">-- μg/m³</span>
                 </div>
                 <div class="pollutant-bar">
                   <div class="bar-fill" id="o3Bar"></div>
                 </div>
+                <div class="pollutant-limit">WHO Limit: 100 μg/m³</div>
               </div>
             </div>
           </div>
@@ -140,11 +274,43 @@
           <!-- Health Recommendations Card -->
           <div class="status-card health-card">
             <div class="card-header">
-              <h2>Health Recommendations</h2>
-              <i class="fas fa-heartbeat"></i>
+              <h2>
+                <i class="fas fa-shield-heart card-icon"></i>
+                Health Advisory
+              </h2>
+              <div class="health-score" id="healthScore">
+                <span class="score-value">--</span>
+                <span class="score-label">Health Score</span>
+              </div>
             </div>
             <div id="healthAdvice" class="health-content">
               <p>Loading health recommendations...</p>
+            </div>
+            <div class="health-actions">
+              <button class="health-action-btn">
+                <i class="fas fa-mask"></i>
+                Mask Recommendation
+              </button>
+              <button class="health-action-btn">
+                <i class="fas fa-running"></i>
+                Exercise Guidelines
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Real-time Alerts -->
+        <section class="alerts-section" id="alertsSection" style="display: none;">
+          <div class="alert-card">
+            <div class="alert-header">
+              <i class="fas fa-exclamation-triangle"></i>
+              <h3>Air Quality Alert</h3>
+              <button class="alert-close" onclick="this.closest('.alerts-section').style.display='none'">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="alert-content">
+              <p>PM2.5 levels are elevated. Consider limiting outdoor activities.</p>
             </div>
           </div>
         </section>
@@ -153,11 +319,28 @@
         <section class="charts-section">
           <div class="chart-card">
             <div class="chart-header">
-              <h3>Air Quality Trends</h3>
+              <h3>
+                <i class="fas fa-chart-line chart-icon"></i>
+                Air Quality Trends
+              </h3>
               <div class="chart-controls">
                 <button class="chart-btn active" data-period="24h">24H</button>
                 <button class="chart-btn" data-period="7d">7D</button>
                 <button class="chart-btn" data-period="30d">30D</button>
+              </div>
+            </div>
+            <div class="chart-stats">
+              <div class="chart-stat">
+                <span class="stat-label">Current</span>
+                <span class="stat-value" id="currentAqi">--</span>
+              </div>
+              <div class="chart-stat">
+                <span class="stat-label">24h Avg</span>
+                <span class="stat-value" id="avgAqi">--</span>
+              </div>
+              <div class="chart-stat">
+                <span class="stat-label">Trend</span>
+                <span class="stat-value trend" id="aqiTrendValue">--</span>
               </div>
             </div>
             <div class="chart-container">
@@ -167,14 +350,65 @@
 
           <div class="chart-card">
             <div class="chart-header">
-              <h3>Weather Trends</h3>
+              <h3>
+                <i class="fas fa-thermometer-half chart-icon"></i>
+                Weather Trends
+              </h3>
               <div class="chart-controls">
                 <button class="chart-btn active" data-period="24h">24H</button>
                 <button class="chart-btn" data-period="7d">7D</button>
               </div>
             </div>
+            <div class="chart-stats">
+              <div class="chart-stat">
+                <span class="stat-label">High</span>
+                <span class="stat-value" id="tempHigh">--°</span>
+              </div>
+              <div class="chart-stat">
+                <span class="stat-label">Low</span>
+                <span class="stat-value" id="tempLow">--°</span>
+              </div>
+              <div class="chart-stat">
+                <span class="stat-label">Humidity</span>
+                <span class="stat-value" id="avgHumidity">--%</span>
+              </div>
+            </div>
             <div class="chart-container">
               <canvas id="weatherChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Pollutant Breakdown Chart -->
+          <div class="chart-card pollutant-chart-card">
+            <div class="chart-header">
+              <h3>
+                <i class="fas fa-chart-pie chart-icon"></i>
+                Pollutant Breakdown
+              </h3>
+              <div class="chart-info">
+                <i class="fas fa-info-circle" title="Real-time pollutant composition"></i>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="pollutantChart"></canvas>
+            </div>
+            <div class="pollutant-legend">
+              <div class="legend-item">
+                <div class="legend-color pm25-color"></div>
+                <span>PM2.5</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color pm10-color"></div>
+                <span>PM10</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color no2-color"></div>
+                <span>NO₂</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-color o3-color"></div>
+                <span>O₃</span>
+              </div>
             </div>
           </div>
         </section>
@@ -182,7 +416,10 @@
         <!-- Location Comparison -->
         <section class="comparison-section">
           <div class="section-header">
-            <h2>Bengaluru Areas Comparison</h2>
+            <h2>
+              <i class="fas fa-map section-icon"></i>
+              Bengaluru Areas Live Comparison
+            </h2>
             <div class="comparison-controls">
               <button class="comparison-btn active" data-metric="aqi">AQI</button>
               <button class="comparison-btn" data-metric="temp">Temperature</button>
@@ -197,10 +434,56 @@
         <!-- Weekly Forecast -->
         <section class="forecast-section">
           <div class="section-header">
-            <h2>7-Day Forecast</h2>
+            <h2>
+              <i class="fas fa-calendar-week section-icon"></i>
+              7-Day Weather & Air Quality Forecast
+            </h2>
+            <div class="forecast-toggle">
+              <button class="toggle-btn active" data-view="weather">Weather</button>
+              <button class="toggle-btn" data-view="aqi">Air Quality</button>
+            </div>
           </div>
           <div class="forecast-grid" id="weeklyForecast">
             <!-- Dynamic content will be inserted here -->
+          </div>
+        </section>
+
+        <!-- Additional Insights -->
+        <section class="insights-section">
+          <div class="section-header">
+            <h2>
+              <i class="fas fa-lightbulb section-icon"></i>
+              Environmental Insights
+            </h2>
+          </div>
+          <div class="insights-grid">
+            <div class="insight-card">
+              <div class="insight-icon">
+                <i class="fas fa-seedling"></i>
+              </div>
+              <div class="insight-content">
+                <h4>Air Quality Trend</h4>
+                <p id="aqiInsight">Analyzing current patterns...</p>
+              </div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-icon">
+                <i class="fas fa-cloud-rain"></i>
+              </div>
+              <div class="insight-content">
+                <h4>Weather Impact</h4>
+                <p id="weatherInsight">Evaluating weather effects...</p>
+              </div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-icon">
+                <i class="fas fa-heart"></i>
+              </div>
+              <div class="insight-content">
+                <h4>Health Impact</h4>
+                <p id="healthInsight">Assessing health implications...</p>
+              </div>
+            </div>
           </div>
         </section>
       </div>
@@ -208,8 +491,13 @@
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
-      <div class="loading-spinner"></div>
-      <p>Loading data...</p>
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">
+          <h3>Loading Environmental Data</h3>
+          <p id="loadingStatus">Fetching real-time information...</p>
+        </div>
+      </div>
     </div>
 
     <!-- Toast Container -->
