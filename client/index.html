@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4ade80">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Air Quality">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
 </head>
@@ -29,10 +34,26 @@
         <header class="dashboard-header">
             <div class="header-content">
                 <div class="header-left">
-                    <h1><i class="fas fa-leaf"></i> Bengaluru Air Quality Monitor</h1>
+                    <h1><i class="fas fa-leaf"></i> <span id="city-name">Bengaluru</span> Air Quality Monitor</h1>
                     <p class="header-subtitle">Real-time environmental monitoring dashboard</p>
                 </div>
                 <div class="header-right">
+                    <select id="city-selector" class="city-selector" title="Select City">
+                        <option value="bengaluru">Bengaluru</option>
+                        <option value="mumbai">Mumbai</option>
+                        <option value="delhi">Delhi</option>
+                        <option value="chennai">Chennai</option>
+                        <option value="kolkata">Kolkata</option>
+                        <option value="hyderabad">Hyderabad</option>
+                        <option value="pune">Pune</option>
+                        <option value="ahmedabad">Ahmedabad</option>
+                    </select>
+                    <button id="theme-toggle" class="theme-toggle" title="Toggle Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="export-btn" class="export-btn" title="Export Data">
+                        <i class="fas fa-download"></i>
+                    </button>
                     <button id="refresh-btn" class="refresh-btn" title="Refresh Data">
                         <i class="fas fa-sync-alt"></i>
                     </button>
@@ -176,6 +197,21 @@
                         </div>
                         <div class="chart-container">
                             <canvas id="weather-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Pollutant Radar Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-chart-radar"></i> Pollutant Analysis</h3>
+                            <div class="chart-controls">
+                                <button id="radar-refresh" class="chart-refresh-btn" title="Refresh Radar Chart">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="radar-chart"></canvas>
                         </div>
                     </div>
                 </div>
