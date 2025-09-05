@@ -155,7 +155,7 @@ body {
     gap: 16px;
 }
 
-.refresh-btn {
+.refresh-btn, .theme-toggle, .export-btn, .city-selector {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
@@ -166,9 +166,31 @@ body {
     font-size: 1.1rem;
 }
 
-.refresh-btn:hover {
+.city-selector {
+    font-family: 'Inter', sans-serif;
+    min-width: 120px;
+}
+
+.city-selector option {
+    background: #1a1a2e;
+    color: white;
+}
+
+.refresh-btn:hover, .theme-toggle:hover, .export-btn:hover {
     background: rgba(255, 255, 255, 0.3);
-    transform: rotate(180deg);
+    transform: scale(1.05);
+}
+
+.refresh-btn:hover {
+    transform: rotate(180deg) scale(1.05);
+}
+
+.theme-toggle:hover {
+    transform: rotate(15deg) scale(1.05);
+}
+
+.export-btn:hover {
+    transform: translateY(-2px) scale(1.05);
 }
 
 .last-updated {
@@ -368,6 +390,22 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
     gap: 24px;
+}
+
+.chart-refresh-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.chart-refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(180deg);
 }
 
 .chart-card {
@@ -594,4 +632,67 @@ body {
         flex-direction: column;
         text-align: center;
     }
+}
+
+/* Dark Theme Styles */
+body.dark-theme {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #e2e8f0;
+}
+
+body.dark-theme .dashboard-header {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .condition-card,
+body.dark-theme .chart-card,
+body.dark-theme .health-card,
+body.dark-theme .location-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body.dark-theme .alert {
+    background: rgba(0, 0, 0, 0.8);
+    color: #e2e8f0;
+}
+
+body.dark-theme .loading-screen {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+/* Theme Toggle Animation */
+.theme-toggle {
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-toggle i {
+    transition: transform 0.3s ease;
+}
+
+body.dark-theme .theme-toggle i {
+    transform: rotate(180deg);
+}
+
+/* Export Button Styles */
+.export-btn {
+    position: relative;
+}
+
+.export-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.export-btn:hover::after {
+    transform: translateX(100%);
 }

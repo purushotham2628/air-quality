@@ -2,8 +2,20 @@ const express = require('express');
 const router = express.Router();
 
 const API_KEY = process.env.API_KEY;
-const LAT = 12.9716; // Bengaluru latitude
-const LON = 77.5946; // Bengaluru longitude
+
+// Indian cities data
+const CITIES = {
+    'bengaluru': { name: 'Bengaluru', lat: 12.9716, lon: 77.5946 },
+    'mumbai': { name: 'Mumbai', lat: 19.0760, lon: 72.8777 },
+    'delhi': { name: 'Delhi', lat: 28.7041, lon: 77.1025 },
+    'chennai': { name: 'Chennai', lat: 13.0827, lon: 80.2707 },
+    'kolkata': { name: 'Kolkata', lat: 22.5726, lon: 88.3639 },
+    'hyderabad': { name: 'Hyderabad', lat: 17.3850, lon: 78.4867 },
+    'pune': { name: 'Pune', lat: 18.5204, lon: 73.8567 },
+    'ahmedabad': { name: 'Ahmedabad', lat: 23.0225, lon: 72.5714 }
+};
+
+const DEFAULT_CITY = 'bengaluru';
 
 // Validate API key
 if (!API_KEY) {
@@ -19,7 +31,10 @@ router.get('/air-quality', async (req, res) => {
       });
     }
 
-    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${LAT}&lon=${LON}&appid=${API_KEY}`;
+    const city = req.query.city || DEFAULT_CITY;
+    const cityData = CITIES[city] || CITIES[DEFAULT_CITY];
+    
+    const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${cityData.lat}&lon=${cityData.lon}&appid=${API_KEY}`;
     
     const response = await fetch(url);
 
@@ -63,6 +78,8 @@ router.get('/air-quality', async (req, res) => {
     };
 
     res.json({
+      city: cityData.name,
+      city_key: city,
       aqi,
       aqi_indian: convertToIndianAQI(aqi, info.pm2_5 || 0, info.pm10 || 0),
       pm2_5: Math.round((info.pm2_5 || 0) * 100) / 100,
@@ -411,5 +428,81 @@ function generateMockHistoricalData(type, period) {
 
   return data.reverse(); // Return chronological order
 }
+
+// Multi-city comparison endpoint
+router.get('/cities/compare', async (req, res) => {
+  try {
+    if (!API_KEY) {
+      return res.status(500).json({ 
+        error: "API key not configured. Please add your OpenWeatherMap API key to the .env file." 
+      });
+    }
+
+    const cities = Object.keys(CITIES);
+    const cityData = [];
+
+    // Fetch data for all cities in parallel
+    const promises = cities.map(async (cityKey) => {
+      const city = CITIES[cityKey];
+      try {
+        const [airQualityResponse, weatherResponse] = await Promise.all([
+          fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${city.lat}&lon=${city.lon}&appid=${API_KEY}`),
+          fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${city.lat}&lon=${city.lon}&appid=${API_KEY}&units=metric`)
+        ]);
+
+        if (airQualityResponse.ok && weatherResponse.ok) {
+          const airQualityData = await airQualityResponse.json();
+          const weatherData = await weatherResponse.json();
+          
+          const aqiInfo = airQualityData.list[0];
+          return {
+            city: city.name,
+            city_key: cityKey,
+            aqi: aqiInfo.main.aqi,
+            aqi_indian: convertToIndianAQI(aqiInfo.main.aqi, aqiInfo.components.pm2_5 || 0, aqiInfo.components.pm10 || 0),
+            pm2_5: Math.round((aqiInfo.components.pm2_5 || 0) * 100) / 100,
+            temperature: Math.round(weatherData.main.temp * 10) / 10,
+            humidity: weatherData.main.humidity,
+            wind_speed: Math.round((weatherData.wind?.speed || 0) * 10) / 10,
+            timestamp: new Date().toISOString()
+          };
+        }
+        return null;
+      } catch (error) {
+        console.error(`Error fetching data for ${city.name}:`, error);
+        return null;
+      }
+    });
+
+    const results = await Promise.all(promises);
+    const validResults = results.filter(result => result !== null);
+
+    res.json({
+      cities: validResults,
+      total_cities: validResults.length,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (err) {
+    console.error('Multi-city comparison error:', err.message);
+    res.status(500).json({ 
+      error: "Failed to fetch multi-city data",
+      details: err.message 
+    });
+  }
+});
+
+// Cities list endpoint
+router.get('/cities', (req, res) => {
+  res.json({
+    cities: Object.entries(CITIES).map(([key, city]) => ({
+      key,
+      name: city.name,
+      lat: city.lat,
+      lon: city.lon
+    })),
+    default_city: DEFAULT_CITY
+  });
+});
 
 module.exports = router;
