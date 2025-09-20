@@ -11,8 +11,8 @@ const insightsEngine = new InsightsEngine();
  * Advanced Machine Learning Endpoints for Air Quality Analysis
  */
 
-// Air Quality Predictions Endpoint
-router.get('/predictions/:city?', async (req, res) => {
+// Air Quality Predictions Endpoint (with city parameter)
+router.get('/predictions/:city', async (req, res) => {
   try {
     const cache = req.app.get('cache');
     const logger = req.app.get('logger');
@@ -68,8 +68,14 @@ router.get('/predictions/:city?', async (req, res) => {
   }
 });
 
+// Air Quality Predictions Endpoint (default city)
+router.get('/predictions', async (req, res) => {
+  req.params.city = 'bengaluru';
+  return router.handle(req, res);
+});
+
 // Advanced Insights Endpoint
-router.get('/insights/:city?', async (req, res) => {
+router.get('/insights/:city', async (req, res) => {
   try {
     const cache = req.app.get('cache');
     const logger = req.app.get('logger');
@@ -118,7 +124,7 @@ router.get('/insights/:city?', async (req, res) => {
 });
 
 // Real-time Analytics Dashboard Data
-router.get('/analytics/:city?', async (req, res) => {
+router.get('/analytics/:city', async (req, res) => {
   try {
     const city = req.params.city || 'bengaluru';
     const timeframe = req.query.timeframe || '24h';
@@ -154,7 +160,7 @@ router.get('/analytics/:city?', async (req, res) => {
 });
 
 // Health Recommendations with ML Enhancement
-router.get('/health-recommendations/:city?', async (req, res) => {
+router.get('/health-recommendations/:city', async (req, res) => {
   try {
     const city = req.params.city || 'bengaluru';
     const userProfile = req.query.profile || 'general'; // general, sensitive, elderly, children, athlete
@@ -191,7 +197,7 @@ router.get('/health-recommendations/:city?', async (req, res) => {
 });
 
 // Environmental Impact Analysis
-router.get('/environmental-impact/:city?', async (req, res) => {
+router.get('/environmental-impact/:city', async (req, res) => {
   try {
     const city = req.params.city || 'bengaluru';
     

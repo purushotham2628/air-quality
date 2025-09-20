@@ -29,6 +29,7 @@
     "helmet": "^8.1.0",
     "lottie-web": "^5.13.0",
     "node-cache": "^5.1.2",
+    "simple-statistics": "^7.8.8",
     "winston": "^3.17.0"
   },
   "engines": {
