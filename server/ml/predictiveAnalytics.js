@@ -417,6 +417,93 @@ class PredictiveAnalytics {
     const values = data.map(d => d.aqi || 2);
     return statistics.standardDeviation(values) / statistics.mean(values);
   }
+
+  calculateEventProbability(spikes, hourIndex) {
+    if (!spikes || spikes.length === 0) return 0.1;
+    
+    // Calculate probability based on historical spike patterns
+    const recentSpikes = spikes.filter(spike => spike.index >= spikes.length - 24);
+    const spikeFrequency = recentSpikes.length / 24;
+    
+    // Time-based probability adjustment
+    const hour = (new Date().getHours() + hourIndex) % 24;
+    const timeMultiplier = ((hour >= 7 && hour <= 10) || (hour >= 17 && hour <= 20)) ? 1.5 : 1.0;
+    
+    return Math.min(0.8, spikeFrequency * timeMultiplier);
+  }
+
+  getSeasonalPollutantAdjustment(pollutant, hourIndex) {
+    const hour = (new Date().getHours() + hourIndex) % 24;
+    const month = new Date().getMonth();
+    
+    // Base seasonal adjustments for Bengaluru
+    let seasonalFactor = 1.0;
+    if ([11, 0, 1, 2].includes(month)) seasonalFactor = 1.2; // Winter pollution
+    if ([5, 6, 7, 8, 9].includes(month)) seasonalFactor = 0.8; // Monsoon cleaning
+    
+    // Hourly adjustments
+    let hourlyFactor = 1.0;
+    if ((hour >= 7 && hour <= 10) || (hour >= 17 && hour <= 20)) hourlyFactor = 1.3;
+    if (hour >= 22 || hour <= 6) hourlyFactor = 0.9;
+    
+    // Pollutant-specific adjustments
+    const pollutantFactors = {
+      pm25: seasonalFactor * hourlyFactor,
+      pm10: seasonalFactor * hourlyFactor * 1.1,
+      no2: hourlyFactor * 1.2, // Traffic-dependent
+      o3: hour >= 12 && hour <= 16 ? 1.4 : 0.8 // Photochemical
+    };
+    
+    return (pollutantFactors[pollutant] || 1.0) - 1.0; // Return adjustment delta
+  }
+
+  analyzeWeeklyPatterns(data) {
+    if (data.length < 7) return { pattern: 'insufficient_data' };
+    
+    const dayAverages = Array(7).fill(0);
+    const dayCounts = Array(7).fill(0);
+    
+    data.forEach(d => {
+      const dayOfWeek = new Date(d.timestamp).getDay();
+      dayAverages[dayOfWeek] += (d.aqi || 2);
+      dayCounts[dayOfWeek]++;
+    });
+    
+    const averages = dayAverages.map((sum, i) => dayCounts[i] > 0 ? sum / dayCounts[i] : 2);
+    const weekdayAvg = statistics.mean(averages.slice(1, 6)); // Mon-Fri
+    const weekendAvg = statistics.mean([averages[0], averages[6]]); // Sat-Sun
+    
+    return {
+      daily_averages: averages,
+      weekday_average: weekdayAvg,
+      weekend_average: weekendAvg,
+      weekend_improvement: ((weekdayAvg - weekendAvg) / weekdayAvg * 100)
+    };
+  }
+
+  analyzeSeasonalTrends(data) {
+    if (data.length < 30) return { trend: 'insufficient_data' };
+    
+    const monthlyData = {};
+    data.forEach(d => {
+      const month = new Date(d.timestamp).getMonth();
+      if (!monthlyData[month]) monthlyData[month] = [];
+      monthlyData[month].push(d.aqi || 2);
+    });
+    
+    const monthlyAverages = {};
+    Object.keys(monthlyData).forEach(month => {
+      monthlyAverages[month] = statistics.mean(monthlyData[month]);
+    });
+    
+    return {
+      monthly_averages: monthlyAverages,
+      best_month: Object.keys(monthlyAverages).reduce((a, b) => 
+        monthlyAverages[a] < monthlyAverages[b] ? a : b),
+      worst_month: Object.keys(monthlyAverages).reduce((a, b) => 
+        monthlyAverages[a] > monthlyAverages[b] ? a : b)
+    };
+  }
 }
 
 module.exports = PredictiveAnalytics;
