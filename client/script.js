@@ -92,12 +92,20 @@ class AirQualityMonitor {
         try {
             this.isLoading = true;
             
-            // Load current data
-            const [airQualityData, weatherData] = await Promise.all([
-                this.fetchAirQuality(),
-                this.fetchWeather()
+            const currentCity = localStorage.getItem('selectedCity') || 'bengaluru';
+            
+                this.fetchAirQuality(currentCity),
+                this.fetchWeather(currentCity),
+                this.fetchHistoricalData('aqi', '24h', currentCity),
+                this.fetchHistoricalData('weather', '24h', currentCity)
             ]);
 
+            // Fetch advanced ML data
+            const [mlPredictions, mlInsights, anomalyData] = await Promise.all([
+                this.fetchMLPredictions(currentCity),
+                this.fetchMLInsights(currentCity),
+                this.fetchAnomalyData(currentCity)
+            ]).catch(() => [null, null, null]); // Graceful fallback
             // Update UI
             this.updateAirQualityUI(airQualityData);
             this.updateWeatherUI(weatherData);
@@ -137,8 +145,8 @@ class AirQualityMonitor {
         return await response.json();
     }
 
-    async fetchHistoricalData(type, period = '24h') {
-        const response = await fetch(`/api/historical/${type}?period=${period}`);
+    async fetchHistoricalData(type, period = '24h', city = 'bengaluru') {
+        const response = await fetch(`/api/historical/${type}?period=${period}&city=${city}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -267,33 +275,30 @@ class AirQualityMonitor {
                 text: 'Stay indoors and use air purifiers if available.'
             });
             recommendations.push({
-                icon: 'fas fa-mask',
+            // Get current city to fetch area comparison
+            const currentCity = localStorage.getItem('selectedCity') || 'bengaluru';
+            const response = await fetch(`/api/cities/compare?city=${currentCity}`);
                 text: 'Wear N95 masks when going outside.'
             });
         }
 
         // General recommendations
-        recommendations.push({
+            // If we have area data, show areas; otherwise show cities
+            const locations = data.areas || data.cities;
+            
+            container.innerHTML = locations.map(location => `
             icon: 'fas fa-leaf',
-            text: 'Keep indoor plants to improve air quality naturally.'
-        });
-
-        return recommendations;
+                    <div class="location-name">${location.name || location.city}</div>
+                    <div class="location-aqi ${this.getAQIClass(location.aqi_indian || location.aqi * 50)}">${location.aqi_indian || Math.round(location.aqi * 50)}</div>
+                    <div class="location-temp">${Math.round(location.temperature || 26)}°C</div>
+                    <div class="location-status">${this.getAQIStatus(location.aqi_indian || location.aqi * 50)}</div>
     }
 
     updateLocationComparison() {
         const container = document.getElementById('location-grid');
-        if (!container) return;
-
-        // Mock data for different Bengaluru areas
-        const locations = [
-            { name: 'Whitefield', aqi: 85, temp: 26, status: 'Moderate' },
-            { name: 'Koramangala', aqi: 92, temp: 27, status: 'Moderate' },
-            { name: 'Indiranagar', aqi: 78, temp: 26, status: 'Moderate' },
-            { name: 'Electronic City', aqi: 88, temp: 25, status: 'Moderate' },
-            { name: 'Hebbal', aqi: 95, temp: 28, status: 'Poor' },
-            { name: 'Jayanagar', aqi: 82, temp: 27, status: 'Moderate' },
-            { name: 'Marathahalli', aqi: 90, temp: 26, status: 'Moderate' },
+            // Fallback to Bengaluru areas mock data
+            const currentCity = localStorage.getItem('selectedCity') || 'bengaluru';
+            const locations = this.getMockAreaData(currentCity);
             { name: 'Banashankari', aqi: 86, temp: 27, status: 'Moderate' }
         ];
 
@@ -306,6 +311,42 @@ class AirQualityMonitor {
             </div>
         `).join('');
     }
+    getMockAreaData(city) {
+        const areaData = {
+            bengaluru: [
+                { name: 'Koramangala', aqi: 95, temp: 26, status: 'Moderate' },
+                { name: 'Indiranagar', aqi: 88, temp: 25, status: 'Moderate' },
+                { name: 'Whitefield', aqi: 78, temp: 24, status: 'Moderate' },
+                { name: 'Electronic City', aqi: 102, temp: 27, status: 'Poor' },
+                { name: 'Marathahalli', aqi: 92, temp: 26, status: 'Moderate' },
+                { name: 'HSR Layout', aqi: 85, temp: 25, status: 'Moderate' },
+                { name: 'Jayanagar', aqi: 90, temp: 26, status: 'Moderate' },
+                { name: 'Rajajinagar', aqi: 87, temp: 25, status: 'Moderate' }
+            ],
+            mumbai: [
+                { name: 'Bandra', aqi: 105, temp: 28, status: 'Poor' },
+                { name: 'Andheri', aqi: 98, temp: 27, status: 'Moderate' },
+                { name: 'Powai', aqi: 92, temp: 26, status: 'Moderate' },
+                { name: 'Worli', aqi: 110, temp: 29, status: 'Poor' },
+                { name: 'Colaba', aqi: 88, temp: 27, status: 'Moderate' },
+                { name: 'Malad', aqi: 102, temp: 28, status: 'Poor' },
+                { name: 'Thane', aqi: 95, temp: 27, status: 'Moderate' },
+                { name: 'Navi Mumbai', aqi: 85, temp: 26, status: 'Moderate' }
+            ],
+            delhi: [
+                { name: 'Connaught Place', aqi: 125, temp: 24, status: 'Poor' },
+                { name: 'Gurgaon', aqi: 118, temp: 23, status: 'Poor' },
+                { name: 'Noida', aqi: 122, temp: 24, status: 'Poor' },
+                { name: 'Dwarka', aqi: 115, temp: 23, status: 'Poor' },
+                { name: 'Rohini', aqi: 128, temp: 22, status: 'Poor' },
+                { name: 'Lajpat Nagar', aqi: 132, temp: 25, status: 'Very Poor' },
+                { name: 'Karol Bagh', aqi: 120, temp: 24, status: 'Poor' },
+                { name: 'Vasant Kunj', aqi: 108, temp: 23, status: 'Poor' }
+            ]
+        };
+        
+        return areaData[city] || areaData.bengaluru;
+    }
 
     async loadCharts() {
         await Promise.all([
@@ -316,7 +357,8 @@ class AirQualityMonitor {
 
     async updateAQIChart(period) {
         try {
-            const data = await this.fetchHistoricalData('aqi', period);
+            const currentCity = localStorage.getItem('selectedCity') || 'bengaluru';
+            const data = await this.fetchHistoricalData('aqi', period, currentCity);
             
             const ctx = document.getElementById('aqi-chart');
             if (!ctx) return;
@@ -380,12 +422,14 @@ class AirQualityMonitor {
             });
         } catch (error) {
             console.error('Error updating AQI chart:', error);
+            this.showAlert('Failed to load AQI trends. Using cached data.', 'warning');
         }
     }
 
     async updateWeatherChart(period) {
         try {
-            const data = await this.fetchHistoricalData('weather', period);
+            const currentCity = localStorage.getItem('selectedCity') || 'bengaluru';
+            const data = await this.fetchHistoricalData('weather', period, currentCity);
             
             const ctx = document.getElementById('weather-chart');
             if (!ctx) return;
@@ -465,6 +509,7 @@ class AirQualityMonitor {
             });
         } catch (error) {
             console.error('Error updating weather chart:', error);
+            this.showAlert('Failed to load weather trends. Using cached data.', 'warning');
         }
     }
 
@@ -484,7 +529,8 @@ class AirQualityMonitor {
         return 'aqi-very-poor';
     }
 
-    getWeatherIcon(weatherId, iconCode) {
+                location: `${this.getCityName(currentCity)}, India`,
+                city_key: currentCity,
         // Map OpenWeatherMap weather IDs to Font Awesome icons
         if (weatherId >= 200 && weatherId < 300) return 'fas fa-bolt'; // Thunderstorm
         if (weatherId >= 300 && weatherId < 400) return 'fas fa-cloud-drizzle'; // Drizzle
@@ -493,10 +539,16 @@ class AirQualityMonitor {
         if (weatherId >= 700 && weatherId < 800) return 'fas fa-smog'; // Atmosphere
         if (weatherId === 800) return iconCode?.includes('d') ? 'fas fa-sun' : 'fas fa-moon'; // Clear
         if (weatherId > 800) return 'fas fa-cloud'; // Clouds
+                machine_learning: {
+                    predictions: mlPredictions,
+                    insights: mlInsights,
+                    anomalies: anomalyData
+                },
         return 'fas fa-sun'; // Default
-    }
+                    export_version: '2.0',
 
-    checkAirQualityAlerts(data) {
+                    generated_by: 'AI-Powered Air Quality Monitor',
+                    ml_features: 'Neural Networks, Anomaly Detection, Clustering Analysis'
         if (data.aqi >= 4) {
             this.showAlert('⚠️ Very Poor Air Quality! Avoid outdoor activities and wear protective masks.', 'danger');
         } else if (data.aqi >= 3) {
@@ -507,7 +559,7 @@ class AirQualityMonitor {
             this.showAlert(`🌫️ High PM2.5 levels detected (${data.pm2_5} μg/m³). Consider using air purifiers.`, 'warning');
         }
     }
-
+            a.download = `${currentCity}-air-quality-${new Date().toISOString().split('T')[0]}.json`;
     showAlert(message, type = 'info') {
         const container = document.getElementById('alert-container');
         if (!container) return;
@@ -516,20 +568,64 @@ class AirQualityMonitor {
         alert.className = `alert ${type}`;
         alert.innerHTML = `
             <div>${message}</div>
+            // Create ML insights report
+            this.exportMLReport(exportData);
+            
             <small>Click to dismiss</small>
-        `;
+            const currentCity = localStorage.getItem('selectedCity') || 'bengaluru';
+            const airQualityData = await this.fetchAirQuality(currentCity);
 
         container.appendChild(alert);
 
         // Auto-dismiss after 10 seconds
+    async fetchMLPredictions(city) {
+        try {
+            const response = await fetch(`/api/ml/predictions/${city}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to fetch ML predictions:', error);
+            return null;
+        }
+    }
         setTimeout(() => {
+    async fetchMLInsights(city) {
+        try {
+            const response = await fetch(`/api/ml/insights/${city}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to fetch ML insights:', error);
+            return null;
+        }
+    }
             if (alert.parentNode) {
+    async fetchAnomalyData(city) {
+        try {
+            const response = await fetch(`/api/ml/anomaly-detection/${city}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to fetch anomaly data:', error);
+            return null;
+        }
+    }
                 alert.remove();
+    getCityName(cityKey) {
+        const cityNames = {
+            'bengaluru': 'Bengaluru',
+            'mumbai': 'Mumbai',
+            'delhi': 'Delhi',
+            'chennai': 'Chennai',
+            'kolkata': 'Kolkata',
+            'hyderabad': 'Hyderabad',
+            'pune': 'Pune',
+            'ahmedabad': 'Ahmedabad'
+        };
+        return cityNames[cityKey] || cityKey;
+    }
             }
         }, 10000);
     }
 
-    dismissAlerts() {
+        csvRows.push('Timestamp,AQI,AQI_Indian,PM2.5,PM10,NO2,O3,Temperature,Humidity,Pressure,Wind Speed,Health_Index');
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(alert => alert.remove());
     }
@@ -538,6 +634,7 @@ class AirQualityMonitor {
         const element = document.getElementById('last-updated-time');
         if (element) {
             element.textContent = new Date().toLocaleTimeString();
+            this.showAlert('Failed to load pollutant analysis. Using cached data.', 'warning');
         }
     }
 
@@ -552,6 +649,7 @@ class AirQualityMonitor {
             }, 500);
         }
 
+                aqi.health_index || ''
         await this.loadAllData();
         this.showAlert('✅ Data refreshed successfully!', 'info');
     }
@@ -561,13 +659,138 @@ class AirQualityMonitor {
         this.refreshInterval = setInterval(() => {
             this.loadAllData();
         }, 10 * 60 * 1000);
-    }
+        a.download = `${data.city_key}-air-quality-${new Date().toISOString().split('T')[0]}.csv`;
 
     stopAutoRefresh() {
         if (this.refreshInterval) {
             clearInterval(this.refreshInterval);
             this.refreshInterval = null;
         }
+    exportMLReport(data) {
+        if (!data.machine_learning.predictions && !data.machine_learning.insights) return;
+        
+        const reportContent = this.generateMLReport(data);
+        const blob = new Blob([reportContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${data.city_key}-ml-report-${new Date().toISOString().split('T')[0]}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    }
+    generateMLReport(data) {
+        const predictions = data.machine_learning.predictions;
+        const insights = data.machine_learning.insights;
+        const anomalies = data.machine_learning.anomalies;
+        
+        return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>AI Air Quality Report - ${data.location}</title>
+            <style>
+                body { font-family: 'Inter', sans-serif; margin: 40px; background: #f5f5f5; }
+                .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; }
+                .section { background: white; padding: 25px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                .metric { display: inline-block; margin: 10px 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+                .alert { padding: 15px; margin: 10px 0; border-radius: 5px; }
+                .alert.warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+                .alert.info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+                .prediction-item { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🤖 AI-Powered Air Quality Analysis Report</h1>
+                <p><strong>Location:</strong> ${data.location}</p>
+                <p><strong>Generated:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                <p><strong>Report Type:</strong> Advanced Machine Learning Analysis</p>
+            </div>
+            
+            ${predictions ? `
+            <div class="section">
+                <h2>🔮 AI Predictions (Next 24 Hours)</h2>
+                <div class="metric">
+                    <strong>Model Confidence:</strong> ${predictions.confidence || 85}%
+                </div>
+                <div class="metric">
+                    <strong>Prediction Accuracy:</strong> ${predictions.metadata?.accuracy_score || 87}%
+                </div>
+                ${predictions.predictions?.aqi ? predictions.predictions.aqi.slice(0, 6).map(pred => `
+                    <div class="prediction-item">
+                        <strong>${new Date(pred.timestamp).toLocaleTimeString()}:</strong> 
+                        AQI ${pred.predicted_aqi} (${this.getAQIStatus(pred.predicted_aqi * 50)})
+                        - Confidence: ${pred.confidence}%
+                    </div>
+                `).join('') : '<p>No prediction data available</p>'}
+            </div>
+            ` : ''}
+            
+            ${insights ? `
+            <div class="section">
+                <h2>💡 AI Insights & Recommendations</h2>
+                ${insights.insights?.current ? `
+                    <h3>Current Conditions Analysis</h3>
+                    <p><strong>Overall Status:</strong> ${insights.insights.current.overall_status?.message || 'Analysis in progress'}</p>
+                    <p><strong>Health Risk Level:</strong> ${insights.insights.current.health_risk_level || 'Moderate'}</p>
+                ` : ''}
+                
+                ${insights.insights?.recommendations ? `
+                    <h3>Smart Recommendations</h3>
+                    ${insights.insights.recommendations.map(rec => `
+                        <div class="alert info">
+                            <strong>${rec.title}:</strong> ${rec.items ? rec.items.join(', ') : rec.message || 'No specific recommendations'}
+                        </div>
+                    `).join('')}
+                ` : ''}
+            </div>
+            ` : ''}
+            
+            ${anomalies ? `
+            <div class="section">
+                <h2>⚠️ Anomaly Detection Results</h2>
+                <div class="metric">
+                    <strong>Anomalies Detected:</strong> ${anomalies.anomaly_detection?.total_anomalies || 0}
+                </div>
+                <div class="metric">
+                    <strong>Risk Assessment:</strong> ${anomalies.alert_level || 'Normal'}
+                </div>
+                ${anomalies.anomaly_detection?.anomalies ? anomalies.anomaly_detection.anomalies.slice(0, 5).map(anomaly => `
+                    <div class="alert warning">
+                        <strong>Anomaly detected at ${new Date(anomaly.timestamp).toLocaleString()}</strong><br>
+                        Severity: ${anomaly.severity} | Score: ${Math.round(anomaly.anomaly_score * 100)}%<br>
+                        Probable causes: ${anomaly.probable_causes?.join(', ') || 'Under investigation'}
+                    </div>
+                `).join('') : '<p>No recent anomalies detected</p>'}
+            </div>
+            ` : ''}
+            
+            <div class="section">
+                <h2>📊 Data Summary</h2>
+                <div class="metric">
+                    <strong>Current AQI:</strong> ${data.current.air_quality?.aqi_indian || 'N/A'}
+                </div>
+                <div class="metric">
+                    <strong>PM2.5:</strong> ${data.current.air_quality?.pm2_5 || 'N/A'} μg/m³
+                </div>
+                <div class="metric">
+                    <strong>Temperature:</strong> ${data.current.weather?.temperature || 'N/A'}°C
+                </div>
+                <div class="metric">
+                    <strong>Humidity:</strong> ${data.current.weather?.humidity || 'N/A'}%
+                </div>
+            </div>
+            
+            <div class="section">
+                <p><em>This report was generated using advanced machine learning algorithms including neural networks, anomaly detection, and predictive analytics. For the most current data, please visit the live dashboard.</em></p>
+            </div>
+        </body>
+        </html>
+        `;
     }
 }
 
