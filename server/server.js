@@ -6,7 +6,7 @@ const path = require('path');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
@@ -31,9 +31,9 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🌟 Air Quality Monitor Server running at http://localhost:${PORT}`);
-  console.log(`📊 Dashboard available at http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🌟 Air Quality Monitor Server running at http://0.0.0.0:${PORT}`);
+  console.log(`📊 Dashboard available at http://0.0.0.0:${PORT}`);
   
   if (!process.env.API_KEY) {
     console.warn('⚠️  Warning: API_KEY not found in environment variables');

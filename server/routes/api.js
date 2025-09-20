@@ -149,7 +149,10 @@ router.get('/weather', async (req, res) => {
       });
     }
 
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&appid=${API_KEY}&units=metric`;
+    const city = req.query.city || DEFAULT_CITY;
+    const cityData = CITIES[city] || CITIES[DEFAULT_CITY];
+
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${cityData.lat}&lon=${cityData.lon}&appid=${API_KEY}&units=metric`;
     
     const response = await fetch(url);
 
@@ -206,6 +209,8 @@ router.get('/weather', async (req, res) => {
     const currentHour = new Date().getHours();
     
     res.json({
+      city: cityData.name,
+      city_key: city,
       temperature: Math.round(data.main.temp * 10) / 10,
       feels_like: Math.round(data.main.feels_like * 10) / 10,
       heat_index: calculateHeatIndex(data.main.temp, data.main.humidity),
@@ -357,6 +362,15 @@ function generateMockHistoricalData(type, period) {
       
       // CO correlates with traffic
       const co = Math.round((0.4 + trafficFactor * 1.2 + (Math.random() - 0.5) * 0.3) * 100) / 100;
+      
+      // Create components object for health index calculation
+      const components = {
+        pm2_5: pm25,
+        pm10: pm10,
+        no2: no2,
+        o3: o3,
+        co: co
+      };
       
       data.push({
         timestamp: timestamp.toISOString(),
