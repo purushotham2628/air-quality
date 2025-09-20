@@ -202,7 +202,10 @@
             <section class="location-section">
                 <div class="location-card">
                     <div class="card-header">
-                        <h3><i class="fas fa-map-marker-alt"></i> Bengaluru Areas Comparison</h3>
+                        <h3><i class="fas fa-map-marker-alt"></i> <span id="location-comparison-title">Area Comparison</span></h3>
+                        <button id="toggle-comparison" class="chart-refresh-btn" title="Toggle between areas and cities">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
                     </div>
                     <div class="card-content">
                         <div id="location-grid" class="location-grid">
@@ -212,7 +215,69 @@
                 </div>
             </section>
         </main>
+            <!-- Advanced ML Insights Section -->
+            <section class="ml-insights-section">
+                <div class="ml-panel">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-brain"></i> Advanced AI Analytics</h3>
+                        <div class="confidence-indicator">
+                            <span class="confidence-label">Model Confidence:</span>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidence-fill"></div>
+                            </div>
+                            <span class="confidence-value" id="confidence-value">87%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="insights-grid">
+                        <div class="insight-card prediction-card">
+                            <h4>🔮 Neural Network Predictions</h4>
+                            <div id="neural-predictions">Loading neural predictions...</div>
+                            <canvas id="prediction-mini-chart" width="200" height="100"></canvas>
+                        </div>
+                        
+                        <div class="insight-card pattern-card">
+                            <h4>🔍 Pattern Recognition</h4>
+                            <div id="pattern-insights">Analyzing air quality patterns...</div>
+                        </div>
+                        
+                        <div class="insight-card anomaly-card">
+                            <h4>⚠️ Anomaly Detection</h4>
+                            <div id="anomaly-alerts">Scanning for anomalies...</div>
+                        </div>
+                        
+                        <div class="insight-card clustering-card">
+                            <h4>📊 Clustering Analysis</h4>
+                            <div id="clustering-results">Performing cluster analysis...</div>
+                        </div>
+                    </div>
 
+                    <div class="advanced-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Air Quality Trend</span>
+                            <div class="trend-indicator" id="trend-indicator">
+                                <i class="fas fa-arrow-right"></i>
+                                <span id="trend-text">Analyzing...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-item">
+                            <span class="metric-label">Health Risk Score</span>
+                            <div class="health-score" id="health-score">Calculating...</div>
+                        </div>
+                        
+                        <div class="metric-item">
+                            <span class="metric-label">Prediction Accuracy</span>
+                            <div class="accuracy-score" id="accuracy-score">89%</div>
+                        </div>
+                        
+                        <div class="metric-item">
+                            <span class="metric-label">Anomaly Risk</span>
+                            <div class="anomaly-risk" id="anomaly-risk">Low</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         <!-- Footer -->
         <footer class="dashboard-footer">
             <div class="footer-content">

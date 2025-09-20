@@ -255,10 +255,10 @@ function getAirQualityImpact(windSpeed, clouds) {
 // Historical data endpoint (enhanced mock data)
 router.get('/historical/:type', async (req, res) => {
   const { type } = req.params;
-  const { period = '24h' } = req.query;
+  const { period = '24h', city = 'bengaluru' } = req.query;
 
   try {
-    const mockData = generateMockHistoricalData(type, period);
+    const mockData = generateMockHistoricalData(type, period, city);
     res.json(mockData);
   } catch (err) {
     console.error('Historical data error:', err.message);
@@ -269,7 +269,7 @@ router.get('/historical/:type', async (req, res) => {
   }
 });
 
-function generateMockHistoricalData(type, period) {
+function generateMockHistoricalData(type, period, city = 'bengaluru') {
   const now = new Date();
   const data = [];
   let hours, interval;
@@ -291,6 +291,20 @@ function generateMockHistoricalData(type, period) {
       hours = 24;
       interval = 1;
   }
+
+  // City-specific base values
+  const cityFactors = {
+    bengaluru: { aqiBase: 2.8, tempBase: 25.5, humidityBase: 65 },
+    mumbai: { aqiBase: 3.1, tempBase: 27.2, humidityBase: 75 },
+    delhi: { aqiBase: 3.8, tempBase: 24.8, humidityBase: 60 },
+    chennai: { aqiBase: 2.9, tempBase: 28.1, humidityBase: 78 },
+    kolkata: { aqiBase: 3.2, tempBase: 26.8, humidityBase: 80 },
+    hyderabad: { aqiBase: 3.0, tempBase: 26.2, humidityBase: 62 },
+    pune: { aqiBase: 2.7, tempBase: 24.9, humidityBase: 58 },
+    ahmedabad: { aqiBase: 3.3, tempBase: 27.5, humidityBase: 55 }
+  };
+  
+  const cityFactor = cityFactors[city] || cityFactors.bengaluru;
 
   for (let i = hours; i >= 0; i -= interval) {
     const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
@@ -319,7 +333,7 @@ function generateMockHistoricalData(type, period) {
       const weatherFactor = hour >= 5 && hour <= 8 ? 1.4 : 
                            hour >= 22 || hour <= 4 ? 1.2 : 1;
       
-      const baseAqi = 2.8 + Math.sin(i * 0.05) * 0.8 * trafficFactor * weatherFactor * seasonalFactor;
+      const baseAqi = cityFactor.aqiBase + Math.sin(i * 0.05) * 0.8 * trafficFactor * weatherFactor * seasonalFactor;
       const noise = (Math.random() - 0.5) * 0.4;
       const aqi = Math.max(1, Math.min(5, Math.round(baseAqi + noise)));
       
@@ -359,7 +373,7 @@ function generateMockHistoricalData(type, period) {
       const month = timestamp.getMonth();
       
       // Bengaluru's seasonal temperature pattern
-      const seasonalTemp = 25.5 + Math.sin((dayOfYear - 60) * 2 * Math.PI / 365) * 3.5;
+      const seasonalTemp = cityFactor.tempBase + Math.sin((dayOfYear - 60) * 2 * Math.PI / 365) * 3.5;
       
       // Enhanced daily temperature cycle
       const dailyTemp = seasonalTemp + Math.sin((hour - 6) * Math.PI / 12) * 5.5;
@@ -368,7 +382,7 @@ function generateMockHistoricalData(type, period) {
       
       // Realistic humidity for Bengaluru (higher during monsoon)
       const isMonsoon = [5, 6, 7, 8, 9].includes(month);
-      const baseHumidity = isMonsoon ? 85 : 65;
+      const baseHumidity = isMonsoon ? cityFactor.humidityBase + 20 : cityFactor.humidityBase;
       const humidityVariation = 78 - (dailyTemp - 22) * 1.8 + Math.sin(i * 0.04) * 12;
       const humidity = Math.max(30, Math.min(95, Math.round(humidityVariation + (Math.random() - 0.5) * 8)));
       
@@ -411,5 +425,131 @@ function generateMockHistoricalData(type, period) {
 
   return data.reverse(); // Return chronological order
 }
+
+// Multi-city comparison endpoint
+router.get('/cities/compare', async (req, res) => {
+  try {
+    const requestedCity = req.query.city;
+    
+    if (!API_KEY) {
+      return res.status(500).json({ 
+        error: "API key not configured. Please add your OpenWeatherMap API key to the .env file." 
+      });
+    }
+
+    // If a specific city is requested, return area comparison for that city
+    if (requestedCity && CITIES[requestedCity]) {
+      const areas = generateAreaComparison(requestedCity);
+      return res.json({
+        city: CITIES[requestedCity].name,
+        city_key: requestedCity,
+        areas: areas,
+        total_areas: areas.length,
+        timestamp: new Date().toISOString(),
+        type: 'area_comparison'
+      });
+    }
+
+    // Otherwise return multi-city comparison
+    const cities = Object.keys(CITIES);
+    const cityData = [];
+
+    // Fetch data for all cities in parallel
+    const promises = cities.map(async (cityKey) => {
+      const city = CITIES[cityKey];
+      try {
+        // Simulate API calls with mock data for now
+        const mockAqi = 2.5 + Math.random() * 2;
+        const mockTemp = city.lat > 20 ? 25 + Math.random() * 8 : 20 + Math.random() * 10;
+        
+        return {
+          city: city.name,
+          city_key: cityKey,
+          aqi: Math.round(mockAqi * 10) / 10,
+          aqi_indian: Math.round((mockAqi - 1) * 50 + 50),
+          temperature: Math.round(mockTemp * 10) / 10,
+          humidity: Math.round((60 + Math.random() * 30)),
+          pm2_5: Math.round((15 + mockAqi * 8) * 10) / 10,
+          coordinates: { lat: city.lat, lon: city.lon }
+        };
+      } catch (error) {
+        console.error(`Error fetching data for ${city.name}:`, error.message);
+        return {
+          city: city.name,
+          city_key: cityKey,
+          error: "Data unavailable",
+          coordinates: { lat: city.lat, lon: city.lon }
+        };
+      }
+    });
+
+    const results = await Promise.all(promises);
+    
+    res.json({
+      cities: results,
+      total_cities: results.length,
+      timestamp: new Date().toISOString(),
+      type: 'multi_city_comparison'
+    });
+  } catch (err) {
+    console.error('Multi-city comparison error:', err.message);
+    res.status(500).json({ 
+      error: "Failed to fetch multi-city data",
+      details: err.message 
+    });
+  }
+});
+
+// Generate area comparison for a specific city
+function generateAreaComparison(cityKey) {
+  const areaData = {
+    bengaluru: [
+      { name: 'Koramangala', aqi: 2.8, aqi_indian: 95, temperature: 26, pm2_5: 22, humidity: 65 },
+      { name: 'Indiranagar', aqi: 2.6, aqi_indian: 88, temperature: 25, pm2_5: 19, humidity: 63 },
+      { name: 'Whitefield', aqi: 2.3, aqi_indian: 78, temperature: 24, pm2_5: 16, humidity: 60 },
+      { name: 'Electronic City', aqi: 3.1, aqi_indian: 102, temperature: 27, pm2_5: 25, humidity: 68 },
+      { name: 'Marathahalli', aqi: 2.7, aqi_indian: 92, temperature: 26, pm2_5: 21, humidity: 64 },
+      { name: 'HSR Layout', aqi: 2.5, aqi_indian: 85, temperature: 25, pm2_5: 18, humidity: 62 },
+      { name: 'Jayanagar', aqi: 2.6, aqi_indian: 90, temperature: 26, pm2_5: 20, humidity: 66 },
+      { name: 'Rajajinagar', aqi: 2.5, aqi_indian: 87, temperature: 25, pm2_5: 19, humidity: 63 }
+    ],
+    mumbai: [
+      { name: 'Bandra', aqi: 3.2, aqi_indian: 105, temperature: 28, pm2_5: 28, humidity: 75 },
+      { name: 'Andheri', aqi: 2.9, aqi_indian: 98, temperature: 27, pm2_5: 25, humidity: 73 },
+      { name: 'Powai', aqi: 2.7, aqi_indian: 92, temperature: 26, pm2_5: 22, humidity: 70 },
+      { name: 'Worli', aqi: 3.4, aqi_indian: 110, temperature: 29, pm2_5: 30, humidity: 78 },
+      { name: 'Colaba', aqi: 2.6, aqi_indian: 88, temperature: 27, pm2_5: 21, humidity: 72 },
+      { name: 'Malad', aqi: 3.1, aqi_indian: 102, temperature: 28, pm2_5: 26, humidity: 74 },
+      { name: 'Thane', aqi: 2.8, aqi_indian: 95, temperature: 27, pm2_5: 23, humidity: 71 },
+      { name: 'Navi Mumbai', aqi: 2.5, aqi_indian: 85, temperature: 26, pm2_5: 20, humidity: 69 }
+    ],
+    delhi: [
+      { name: 'Connaught Place', aqi: 4.1, aqi_indian: 125, temperature: 24, pm2_5: 45, humidity: 60 },
+      { name: 'Gurgaon', aqi: 3.9, aqi_indian: 118, temperature: 23, pm2_5: 42, humidity: 58 },
+      { name: 'Noida', aqi: 4.0, aqi_indian: 122, temperature: 24, pm2_5: 44, humidity: 59 },
+      { name: 'Dwarka', aqi: 3.8, aqi_indian: 115, temperature: 23, pm2_5: 40, humidity: 57 },
+      { name: 'Rohini', aqi: 4.2, aqi_indian: 128, temperature: 22, pm2_5: 47, humidity: 61 },
+      { name: 'Lajpat Nagar', aqi: 4.3, aqi_indian: 132, temperature: 25, pm2_5: 50, humidity: 62 },
+      { name: 'Karol Bagh', aqi: 4.0, aqi_indian: 120, temperature: 24, pm2_5: 43, humidity: 60 },
+      { name: 'Vasant Kunj', aqi: 3.6, aqi_indian: 108, temperature: 23, pm2_5: 38, humidity: 56 }
+    ]
+  };
+  
+  return areaData[cityKey] || areaData.bengaluru;
+}
+
+// Cities list endpoint
+router.get('/cities', (req, res) => {
+  const citiesList = Object.entries(CITIES).map(([key, city]) => ({
+    key,
+    name: city.name,
+    coordinates: { lat: city.lat, lon: city.lon }
+  }));
+  
+  res.json({
+    cities: citiesList,
+    total: citiesList.length
+  });
+});
 
 module.exports = router;
