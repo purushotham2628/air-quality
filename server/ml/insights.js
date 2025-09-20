@@ -386,6 +386,106 @@ class InsightsEngine {
     if (errorRatio < 0.2) return 'medium';
     return 'low';
   }
+
+  calculateHealthRisk(data) {
+    const aqi = data.aqi || data.aqi_indian || 2;
+    const pm25 = data.pm25 || 0;
+    const pm10 = data.pm10 || 0;
+    const no2 = data.no2 || 0;
+    
+    // Calculate health risk based on multiple pollutants
+    let riskScore = 0;
+    
+    // AQI contribution (40% weight)
+    if (aqi <= 2) riskScore += 0;
+    else if (aqi <= 3) riskScore += 20;
+    else if (aqi <= 4) riskScore += 60;
+    else riskScore += 100;
+    
+    // PM2.5 contribution (30% weight)
+    if (pm25 <= 15) riskScore += 0;
+    else if (pm25 <= 35) riskScore += 15;
+    else if (pm25 <= 55) riskScore += 45;
+    else riskScore += 75;
+    
+    // PM10 contribution (20% weight)
+    if (pm10 <= 50) riskScore += 0;
+    else if (pm10 <= 100) riskScore += 10;
+    else if (pm10 <= 250) riskScore += 30;
+    else riskScore += 50;
+    
+    // NO2 contribution (10% weight)
+    if (no2 <= 20) riskScore += 0;
+    else if (no2 <= 40) riskScore += 5;
+    else if (no2 <= 80) riskScore += 15;
+    else riskScore += 25;
+    
+    // Normalize to 0-100 scale
+    const normalizedScore = Math.min(100, Math.round(riskScore * 0.4));
+    
+    let level, description, color;
+    if (normalizedScore <= 20) {
+      level = 'Low';
+      description = 'Air quality is satisfactory with little to no health risk';
+      color = '#4ade80';
+    } else if (normalizedScore <= 40) {
+      level = 'Moderate';
+      description = 'Acceptable for most people, sensitive individuals may experience minor issues';
+      color = '#fbbf24';
+    } else if (normalizedScore <= 60) {
+      level = 'High';
+      description = 'Unhealthy for sensitive groups, others may begin to experience issues';
+      color = '#f97316';
+    } else if (normalizedScore <= 80) {
+      level = 'Very High';
+      description = 'Everyone may experience health effects, sensitive groups at serious risk';
+      color = '#ef4444';
+    } else {
+      level = 'Extreme';
+      description = 'Emergency conditions, entire population at serious health risk';
+      color = '#991b1b';
+    }
+    
+    return {
+      score: normalizedScore,
+      level,
+      description,
+      color,
+      recommendations: this.getHealthRecommendations(level)
+    };
+  }
+
+  getHealthRecommendations(riskLevel) {
+    const recommendations = {
+      'Low': [
+        'Great time for outdoor activities',
+        'All populations can enjoy normal outdoor exercise',
+        'Windows can be left open for natural ventilation'
+      ],
+      'Moderate': [
+        'Most people can continue normal outdoor activities',
+        'Sensitive individuals should consider reducing prolonged outdoor exertion',
+        'Monitor symptoms if you have respiratory conditions'
+      ],
+      'High': [
+        'Sensitive groups should limit outdoor activities',
+        'Everyone else should reduce prolonged outdoor exertion',
+        'Consider wearing a mask when outdoors'
+      ],
+      'Very High': [
+        'Everyone should avoid prolonged outdoor activities',
+        'Sensitive groups should stay indoors',
+        'Use air purifiers and keep windows closed'
+      ],
+      'Extreme': [
+        'Everyone should stay indoors',
+        'Avoid all outdoor activities',
+        'Seek medical attention if experiencing symptoms'
+      ]
+    };
+    
+    return recommendations[riskLevel] || recommendations['Moderate'];
+  }
 }
 
 module.exports = InsightsEngine;
