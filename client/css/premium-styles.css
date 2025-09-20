@@ -1,0 +1,270 @@
+@@ .. @@
+ /* ML Insights Panel */
+ .ml-insights-section {
+   margin-top: 2rem;
+   animation: slideInUp 0.8s ease-out;
+ }
+
+@@ .. @@
+   background: linear-gradient(135deg, #764ba2, #667eea);
+ }
+
++/* Advanced ML UI Components */
++.prediction-summary {
++  display: flex;
++  justify-content: space-between;
++  margin-bottom: 1rem;
++  padding: 1rem;
++  background: rgba(255, 255, 255, 0.1);
++  border-radius: 8px;
++}
+
++.prediction-metric {
++  text-align: center;
++}
+
++.prediction-timeline {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
++  gap: 0.5rem;
++}
+
++.prediction-item {
++  text-align: center;
++  padding: 0.5rem;
++  background: rgba(255, 255, 255, 0.05);
++  border-radius: 6px;
++}
+
++.pred-time {
++  display: block;
++  font-size: 0.8rem;
++  color: rgba(255, 255, 255, 0.7);
++  margin-bottom: 0.25rem;
++}
+
++.pred-aqi {
++  display: block;
++  font-weight: 600;
++  font-size: 1.1rem;
++}
+
++.anomaly-status {
++  display: flex;
++  align-items: center;
++  gap: 0.5rem;
++  margin-bottom: 1rem;
++  padding: 0.75rem;
++  border-radius: 6px;
++}
+
++.anomaly-status.normal {
++  background: rgba(76, 175, 80, 0.2);
++  color: #4CAF50;
++}
+
++.anomaly-status.alert {
++  background: rgba(255, 152, 0, 0.2);
++  color: #FF9800;
++}
+
++.anomaly-list {
++  max-height: 120px;
++  overflow-y: auto;
++}
+
++.anomaly-item {
++  display: flex;
++  justify-content: space-between;
++  align-items: center;
++  padding: 0.5rem;
++  margin-bottom: 0.5rem;
++  background: rgba(255, 255, 255, 0.05);
++  border-radius: 4px;
++  font-size: 0.9rem;
++}
+
++.anomaly-time {
++  color: rgba(255, 255, 255, 0.8);
++}
+
++.anomaly-severity {
++  padding: 0.25rem 0.5rem;
++  border-radius: 12px;
++  font-size: 0.8rem;
++  font-weight: 500;
++}
+
++.anomaly-severity.high {
++  background: rgba(244, 67, 54, 0.3);
++  color: #F44336;
++}
+
++.anomaly-severity.medium {
++  background: rgba(255, 152, 0, 0.3);
++  color: #FF9800;
++}
+
++.anomaly-severity.low {
++  background: rgba(255, 235, 59, 0.3);
++  color: #FFEB3B;
++}
+
++.clustering-summary {
++  display: flex;
++  justify-content: space-around;
++  margin-bottom: 1rem;
++  padding: 1rem;
++  background: rgba(255, 255, 255, 0.1);
++  border-radius: 8px;
++}
+
++.cluster-metric {
++  text-align: center;
++}
+
++.cluster-insights {
++  max-height: 100px;
++  overflow-y: auto;
++}
+
++.cluster-insight {
++  padding: 0.5rem;
++  margin-bottom: 0.5rem;
++  background: rgba(255, 255, 255, 0.05);
++  border-radius: 4px;
++  font-size: 0.9rem;
++}
+
++.forecast-summary {
++  display: flex;
++  justify-content: space-between;
++  margin-bottom: 1rem;
++  padding: 1rem;
++  background: rgba(255, 255, 255, 0.1);
++  border-radius: 8px;
++}
+
++.forecast-metric {
++  text-align: center;
++}
+
++.forecast-insights {
++  max-height: 120px;
++  overflow-y: auto;
++}
+
++.forecast-insight {
++  padding: 0.5rem;
++  margin-bottom: 0.5rem;
++  background: rgba(255, 255, 255, 0.05);
++  border-radius: 4px;
++  font-size: 0.9rem;
++}
+
++.metric-value.improving {
++  color: #4CAF50;
++}
+
++.metric-value.stable {
++  color: #FF9800;
++}
+
++.metric-value.deteriorating {
++  color: #F44336;
++}
+
++.health-score.good {
++  color: #4CAF50;
++}
+
++.health-score.moderate {
++  color: #FF9800;
++}
+
++.health-score.poor {
++  color: #F44336;
++}
+
++.anomaly-risk.normal {
++  color: #4CAF50;
++}
+
++.anomaly-risk.low {
++  color: #8BC34A;
++}
+
++.anomaly-risk.medium {
++  color: #FF9800;
++}
+
++.anomaly-risk.high {
++  color: #F44336;
++}
+
++.error-text {
++  color: rgba(255, 255, 255, 0.6);
++  font-style: italic;
++  font-size: 0.9rem;
++}
+
++/* Enhanced location comparison */
++.location-item {
++  background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
++  backdrop-filter: blur(15px);
++  -webkit-backdrop-filter: blur(15px);
++  border: 1px solid rgba(255, 255, 255, 0.15);
++  border-radius: 12px;
++  padding: 1rem;
++  text-align: center;
++  transition: var(--transition-smooth);
++  position: relative;
++  overflow: hidden;
++}
+
++.location-item::before {
++  content: '';
++  position: absolute;
++  top: 0;
++  left: -100%;
++  width: 100%;
++  height: 100%;
++  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
++  transition: left 0.6s ease;
++}
+
++.location-item:hover::before {
++  left: 100%;
++}
+
++.location-item:hover {
++  transform: translateY(-3px) scale(1.02);
++  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
++}
+
+ /* Responsive design enhancements */
+ @media (max-width: 768px) {
+   .insights-grid {
+     grid-template-columns: 1fr;
+   }
+   
+   .advanced-metrics {
+     flex-direction: column;
+     gap: 1rem;
+   }
+   
+   .condition-card:hover {
+     transform: none;
+   }
++  
++  .prediction-timeline {
++    grid-template-columns: repeat(3, 1fr);
++  }
++  
++  .forecast-summary,
++  .clustering-summary,
++  .prediction-summary {
++    flex-direction: column;
++    gap: 0.5rem;
++  }
+ }
